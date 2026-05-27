@@ -1,0 +1,112 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum AttachmentType {
+  ATTACHMENT
+  WORKBOOK
+}
+
+model User {
+  id             String           @id
+  email          String           @unique
+  createdAt      DateTime         @default(now())
+  enrollments    Enrollment[]
+  lessonProgress LessonProgress[]
+}
+
+model Program {
+  id            String       @id @default(cuid())
+  title         String
+  slug          String       @unique
+  description   String?
+  priceCents    Int
+  currency      String       @default("eur")
+  stripePriceId String?
+  published     Boolean      @default(false)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  days          Day[]
+  enrollments   Enrollment[]
+}
+
+model Day {
+  id          String   @id @default(cuid())
+  programId   String
+  program     Program  @relation(fields: [programId], references: [id], onDelete: Cascade)
+  title       String
+  slug        String
+  description String?
+  order       Int
+  lessons     Lesson[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([programId, slug])
+  @@unique([programId, order])
+  @@index([programId, order])
+}
+
+model Lesson {
+  id            String           @id @default(cuid())
+  dayId         String
+  day           Day              @relation(fields: [dayId], references: [id], onDelete: Cascade)
+  title         String
+  description   String?
+  order         Int
+  muxAssetId    String?
+  muxPlaybackId String?
+  attachments   Attachment[]
+  progress      LessonProgress[]
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  @@unique([dayId, order])
+  @@index([dayId, order])
+}
+
+model Attachment {
+  id           String         @id @default(cuid())
+  lessonId     String
+  lesson       Lesson         @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  filename     String
+  blobUrl      String
+  blobPathname String
+  type         AttachmentType @default(ATTACHMENT)
+  createdAt    DateTime       @default(now())
+
+  @@index([lessonId])
+}
+
+model Enrollment {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  programId       String
+  program         Program  @relation(fields: [programId], references: [id], onDelete: Cascade)
+  stripeSessionId String?  @unique
+  paidAt          DateTime @default(now())
+  createdAt       DateTime @default(now())
+
+  @@unique([userId, programId])
+  @@index([userId])
+  @@index([programId])
+}
+
+model LessonProgress {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lessonId    String
+  lesson      Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  completedAt DateTime @default(now())
+
+  @@unique([userId, lessonId])
+  @@index([userId])
+  @@index([lessonId])
+}
