@@ -54,12 +54,20 @@ export async function createSignedThumbnailToken(playbackId: string) {
   }
 }
 
-export function buildThumbnailUrl(playbackId: string, token?: string | null) {
+export function buildThumbnailUrl(
+  playbackId: string,
+  token?: string | null,
+  timeSeconds?: number,
+) {
   const params = new URLSearchParams({
     width: "320",
     height: "180",
     fit_mode: "smartcrop",
   });
+
+  if (timeSeconds !== undefined) {
+    params.set("time", String(timeSeconds));
+  }
 
   if (token) {
     params.set("token", token);
@@ -134,6 +142,27 @@ export async function resolveLessonMedia(lesson: {
     playbackId: playback.playbackId,
     playbackToken: playback.playbackToken,
     thumbnailUrl: buildThumbnailUrl(playback.playbackId, thumbnailToken),
+  };
+}
+
+export async function resolveLessonPreviewMedia(
+  lesson: {
+    muxAssetId: string | null;
+    muxPlaybackId: string | null;
+  },
+  startSeconds: number,
+) {
+  const media = await resolveLessonMedia(lesson);
+  if (!media.playbackId) return media;
+
+  const thumbnailToken = hasMuxSigningKeys()
+    ? await createSignedThumbnailToken(media.playbackId)
+    : null;
+
+  return {
+    ...media,
+    thumbnailUrl: buildThumbnailUrl(media.playbackId, thumbnailToken, startSeconds),
+    startSeconds,
   };
 }
 

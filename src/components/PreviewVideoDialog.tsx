@@ -6,13 +6,13 @@ import MuxPlayer from "@mux/mux-player-react";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-const PREVIEW_SECONDS = 30;
-
 type PreviewVideoDialogProps = {
   dayTitle: string;
   lessonTitle: string;
   playbackId: string;
   playbackToken?: string | null;
+  startSeconds: number;
+  durationSeconds: number;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 };
@@ -22,11 +22,14 @@ export function PreviewVideoDialog({
   lessonTitle,
   playbackId,
   playbackToken,
+  startSeconds,
+  durationSeconds,
   open,
   onOpenChange,
 }: PreviewVideoDialogProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [previewEnded, setPreviewEnded] = useState(false);
+  const previewEndSeconds = startSeconds + durationSeconds;
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -54,7 +57,10 @@ export function PreviewVideoDialog({
         <div className="min-w-0 space-y-1">
           <p className="text-sm font-medium text-primary">{dayTitle}</p>
           <h3 className="text-lg font-semibold tracking-tight">{lessonTitle}</h3>
-          <p className="text-sm text-muted-foreground">Krátka ukážka ({PREVIEW_SECONDS} s)</p>
+          <p className="text-sm text-muted-foreground">
+            Krátka ukážka ({durationSeconds} s od {Math.floor(startSeconds / 60)}:
+            {(startSeconds % 60).toString().padStart(2, "0")})
+          </p>
         </div>
         <Button
           type="button"
@@ -70,15 +76,16 @@ export function PreviewVideoDialog({
 
       <div className="relative bg-black">
         <MuxPlayer
-          key={`${playbackId}-${open ? "open" : "closed"}`}
+          key={`${playbackId}-${startSeconds}-${open ? "open" : "closed"}`}
           playbackId={playbackId}
           tokens={playbackToken ? { playback: playbackToken } : undefined}
           metadata={{ video_title: lessonTitle }}
           streamType="on-demand"
+          startTime={startSeconds}
           className="aspect-video w-full"
           onTimeUpdate={(event) => {
             const media = event.target as HTMLMediaElement;
-            if (media.currentTime >= PREVIEW_SECONDS) {
+            if (media.currentTime >= previewEndSeconds) {
               media.pause();
               setPreviewEnded(true);
             }

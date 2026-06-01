@@ -11,6 +11,8 @@ type PreviewVideo = {
   playbackId: string;
   playbackToken?: string | null;
   thumbnailUrl: string;
+  startSeconds: number;
+  durationSeconds: number;
 };
 
 type ProgramPreviewDayCardProps = {
@@ -77,6 +79,8 @@ export function ProgramPreviewDayCard({
           lessonTitle={previewVideo.lessonTitle}
           playbackId={previewVideo.playbackId}
           playbackToken={previewVideo.playbackToken}
+          startSeconds={previewVideo.startSeconds}
+          durationSeconds={previewVideo.durationSeconds}
           open={dialogOpen}
           onOpenChange={setDialogOpen}
         />
