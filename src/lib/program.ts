@@ -158,39 +158,18 @@ export function findContinueLesson(days: OrderedDay[], completedLessonIds: Set<s
   return null;
 }
 
-export function getLessonNeighbors(
-  days: OrderedDay[],
-  currentLessonId: string,
-  currentDaySlug: string,
-) {
-  const flat = days.flatMap((day) =>
-    day.lessons.map((lesson) => ({
-      daySlug: day.slug,
-      dayTitle: day.title,
-      lessonId: lesson.id,
-      lessonTitle: lesson.title,
-    })),
-  );
-
-  const index = flat.findIndex(
-    (item) => item.lessonId === currentLessonId && item.daySlug === currentDaySlug,
-  );
-
+export function getDayNeighbors(days: OrderedDay[], currentDaySlug: string) {
+  const index = days.findIndex((day) => day.slug === currentDaySlug);
   if (index === -1) return { previous: null, next: null };
 
   return {
-    previous: index > 0 ? flat[index - 1] : null,
-    next: index < flat.length - 1 ? flat[index + 1] : null,
+    previous:
+      index > 0
+        ? { slug: days[index - 1].slug, title: days[index - 1].title }
+        : null,
+    next:
+      index < days.length - 1
+        ? { slug: days[index + 1].slug, title: days[index + 1].title }
+        : null,
   };
-}
-
-export function flattenLessons(days: OrderedDay[]) {
-  return days.flatMap((day) =>
-    day.lessons.map((lesson) => ({
-      daySlug: day.slug,
-      dayTitle: day.title,
-      lessonId: lesson.id,
-      lessonTitle: lesson.title,
-    })),
-  );
 }

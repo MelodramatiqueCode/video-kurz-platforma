@@ -1,8 +1,8 @@
 import { Check } from "lucide-react";
 import { notFound } from "next/navigation";
 import { AttachmentList } from "@/components/AttachmentList";
+import { DayNavigation } from "@/components/DayNavigation";
 import { DaySidebar } from "@/components/AppHeader";
-import { LessonNavigation } from "@/components/LessonNavigation";
 import { LessonProgressToggle } from "@/components/LessonProgressToggle";
 import { LessonThumbnail } from "@/components/LessonThumbnail";
 import { MuxVideoPlayer } from "@/components/MuxVideoPlayer";
@@ -14,7 +14,7 @@ import {
   calculateDayProgress,
   enrichProgramDaysWithThumbnails,
   getDayBySlug,
-  getLessonNeighbors,
+  getDayNeighbors,
   isDayComplete,
   lessonHasVideo,
 } from "@/lib/program";
@@ -63,6 +63,8 @@ export default async function DayPage({
     }),
   );
 
+  const dayNeighbors = getDayNeighbors(program.days, day.slug);
+
   return (
     <div className="grid gap-8 lg:grid-cols-[280px_1fr]">
       <DaySidebar days={dayNav} activeSlug={day.slug} />
@@ -101,41 +103,38 @@ export default async function DayPage({
           </Card>
         ) : null}
 
-        {lessonsWithMedia.map((lesson) => {
-          const neighbors = getLessonNeighbors(program.days, lesson.id, day.slug);
-
-          return (
-            <Card key={lesson.id} id={`lesson-${lesson.id}`} className="scroll-mt-6">
-              <CardHeader>
-                <div className="flex items-start gap-4">
-                  <LessonThumbnail src={lesson.thumbnailUrl} title={lesson.title} size="md" />
-                  <div className="min-w-0 space-y-1">
-                    <CardTitle>{lesson.title}</CardTitle>
-                    {lesson.description ? <CardDescription>{lesson.description}</CardDescription> : null}
-                  </div>
+        {lessonsWithMedia.map((lesson) => (
+          <Card key={lesson.id} id={`lesson-${lesson.id}`} className="scroll-mt-6">
+            <CardHeader>
+              <div className="flex items-start gap-4">
+                <LessonThumbnail src={lesson.thumbnailUrl} title={lesson.title} size="md" />
+                <div className="min-w-0 space-y-1">
+                  <CardTitle>{lesson.title}</CardTitle>
+                  {lesson.description ? <CardDescription>{lesson.description}</CardDescription> : null}
                 </div>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {lesson.playbackId ? (
-                  <MuxVideoPlayer
-                    lessonId={lesson.id}
-                    playbackId={lesson.playbackId}
-                    playbackToken={lesson.playbackToken}
-                    title={lesson.title}
-                  />
-                ) : (
-                  <div className="rounded-xl border border-dashed border-border px-4 py-10 text-center text-sm text-muted-foreground">
-                    Video pre túto lekciu ešte nie je pripravené.
-                  </div>
-                )}
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {lesson.playbackId ? (
+                <MuxVideoPlayer
+                  lessonId={lesson.id}
+                  playbackId={lesson.playbackId}
+                  playbackToken={lesson.playbackToken}
+                  title={lesson.title}
+                />
+              ) : (
+                <div className="rounded-xl border border-dashed border-border px-4 py-10 text-center text-sm text-muted-foreground">
+                  Video pre túto lekciu ešte nie je pripravené.
+                </div>
+              )}
 
-                <AttachmentList attachments={lesson.attachments} />
-                <LessonProgressToggle lessonId={lesson.id} initialCompleted={lesson.completed} />
-                <LessonNavigation previous={neighbors.previous} next={neighbors.next} />
-              </CardContent>
-            </Card>
-          );
-        })}
+              <AttachmentList attachments={lesson.attachments} />
+              <LessonProgressToggle lessonId={lesson.id} initialCompleted={lesson.completed} />
+            </CardContent>
+          </Card>
+        ))}
+
+        <DayNavigation previous={dayNeighbors.previous} next={dayNeighbors.next} />
       </section>
     </div>
   );
