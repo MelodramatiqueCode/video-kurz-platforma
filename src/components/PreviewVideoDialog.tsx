@@ -70,22 +70,24 @@ export function PreviewVideoDialog({
       </div>
 
       <div className="relative bg-black">
-        <MuxPlayer
-          key={`${playbackId}-${startSeconds}-${open ? "open" : "closed"}`}
-          playbackId={playbackId}
-          tokens={playbackToken ? { playback: playbackToken } : undefined}
-          metadata={{ video_title: lessonTitle }}
-          streamType="on-demand"
-          startTime={startSeconds}
-          className="aspect-video w-full"
-          onTimeUpdate={(event) => {
-            const media = event.target as HTMLMediaElement;
-            if (media.currentTime >= previewEndSeconds) {
-              media.pause();
-              setPreviewEnded(true);
-            }
-          }}
-        />
+        {open ? (
+          <MuxPlayer
+            key={`${playbackId}-${startSeconds}`}
+            playbackId={playbackId}
+            tokens={playbackToken ? { playback: playbackToken } : undefined}
+            metadata={{ video_title: lessonTitle }}
+            streamType="on-demand"
+            startTime={startSeconds > 0 ? startSeconds : undefined}
+            className="aspect-video w-full"
+            onTimeUpdate={(event) => {
+              const media = event.target as HTMLMediaElement;
+              if (media.currentTime >= previewEndSeconds) {
+                media.pause();
+                setPreviewEnded(true);
+              }
+            }}
+          />
+        ) : null}
 
         {previewEnded ? (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-black/75 px-6 text-center text-white">

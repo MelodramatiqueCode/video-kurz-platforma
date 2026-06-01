@@ -32,24 +32,33 @@ export async function ProgramPreviewSection({ program }: { program: PreviewProgr
 
   const previewDays = await Promise.all(
     previewDaySources.map(async (day) => {
-      const previewLesson = day.lessons.find((lesson) => lessonHasVideo(lesson));
-      const media = previewLesson ? await resolveLessonMedia(previewLesson) : null;
+      try {
+        const previewLesson = day.lessons.find((lesson) => lessonHasVideo(lesson));
+        const media = previewLesson ? await resolveLessonMedia(previewLesson) : null;
 
-      return {
-        id: day.id,
-        title: day.title,
-        description: day.description ?? null,
-        previewVideo:
-          previewLesson && media?.playbackId
-            ? {
-                lessonTitle: previewLesson.title,
-                playbackId: media.playbackId,
-                playbackToken: media.playbackToken,
-                startSeconds: LANDING_VIDEO_PREVIEW_START_SECONDS,
-                durationSeconds: LANDING_VIDEO_PREVIEW_DURATION_SECONDS,
-              }
-            : null,
-      };
+        return {
+          id: day.id,
+          title: day.title,
+          description: day.description ?? null,
+          previewVideo:
+            previewLesson && media?.playbackId
+              ? {
+                  lessonTitle: previewLesson.title,
+                  playbackId: media.playbackId,
+                  playbackToken: media.playbackToken,
+                  startSeconds: LANDING_VIDEO_PREVIEW_START_SECONDS,
+                  durationSeconds: LANDING_VIDEO_PREVIEW_DURATION_SECONDS,
+                }
+              : null,
+        };
+      } catch {
+        return {
+          id: day.id,
+          title: day.title,
+          description: day.description ?? null,
+          previewVideo: null,
+        };
+      }
     }),
   );
 

@@ -77,22 +77,26 @@ export function buildThumbnailUrl(
 }
 
 export async function resolvePlaybackId(assetId: string) {
-  const mux = getMux();
-  const asset = await mux.video.assets.retrieve(assetId);
+  try {
+    const mux = getMux();
+    const asset = await mux.video.assets.retrieve(assetId);
 
-  if (hasMuxSigningKeys()) {
-    const signedPlayback = asset.playback_ids?.find((playback) => playback.policy === "signed");
-    if (signedPlayback?.id) return signedPlayback.id;
+    if (hasMuxSigningKeys()) {
+      const signedPlayback = asset.playback_ids?.find((playback) => playback.policy === "signed");
+      if (signedPlayback?.id) return signedPlayback.id;
 
-    const created = await mux.video.assets.createPlaybackId(assetId, { policy: "signed" });
+      const created = await mux.video.assets.createPlaybackId(assetId, { policy: "signed" });
+      return created.id;
+    }
+
+    const existingPublic = asset.playback_ids?.find((playback) => playback.policy === "public");
+    if (existingPublic?.id) return existingPublic.id;
+
+    const created = await mux.video.assets.createPlaybackId(assetId, { policy: "public" });
     return created.id;
+  } catch {
+    return null;
   }
-
-  const existingPublic = asset.playback_ids?.find((playback) => playback.policy === "public");
-  if (existingPublic?.id) return existingPublic.id;
-
-  const created = await mux.video.assets.createPlaybackId(assetId, { policy: "public" });
-  return created.id;
 }
 
 export async function resolveLessonPlayback(lesson: {
