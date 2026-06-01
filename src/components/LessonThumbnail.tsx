@@ -4,10 +4,12 @@ export function LessonThumbnail({
   src,
   title,
   size = "md",
+  variant = "default",
 }: {
   src: string | null;
   title: string;
   size?: "xs" | "sm" | "md" | "lg";
+  variant?: "default" | "admin";
 }) {
   if (!src) return null;
 
@@ -25,6 +27,7 @@ export function LessonThumbnail({
       src={src}
       alt={`Ukážka videa: ${title}`}
       className={cn("shrink-0 rounded-md border border-zinc-200 object-cover", sizeClass)}
+      style={variant === "admin" ? { objectPosition: "center 35%" } : undefined}
       loading="lazy"
     />
   );

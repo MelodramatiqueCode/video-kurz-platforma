@@ -58,15 +58,18 @@ export default async function AdminDayPage({
         {lessonsWithThumbnails.map((lesson) => (
           <Card key={lesson.id}>
             <CardHeader>
-              <div className="flex items-start gap-4">
-                <LessonThumbnail src={lesson.thumbnailUrl} title={lesson.title} size="md" />
-                <div className="min-w-0 space-y-1">
-                  <CardTitle>Lekcia {lesson.order}</CardTitle>
-                  <CardDescription>Upravte názov, popis a poradie lekcie.</CardDescription>
-                </div>
-              </div>
+              <CardTitle>Lekcia {lesson.order}</CardTitle>
+              <CardDescription>Upravte názov, popis a poradie lekcie.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              {lesson.thumbnailUrl ? (
+                <LessonThumbnail
+                  src={lesson.thumbnailUrl}
+                  title={lesson.title}
+                  size="lg"
+                  variant="admin"
+                />
+              ) : null}
               <AdminLessonEdit lesson={lesson} />
               <div className="flex flex-wrap gap-2">
                 <Badge>{lesson.attachments.length} súborov</Badge>

@@ -104,11 +104,6 @@ export default async function AdminPage() {
 
               return (
                 <Card key={day.id} className="overflow-hidden">
-                  {day.previewThumbnail ? (
-                    <div className="border-b border-zinc-200 p-3">
-                      <LessonThumbnail src={day.previewThumbnail} title={day.title} size="lg" />
-                    </div>
-                  ) : null}
                   <CardHeader>
                     <div className="flex flex-wrap items-center gap-2">
                       <CardTitle>Deň {day.order}</CardTitle>
@@ -117,6 +112,14 @@ export default async function AdminPage() {
                     <CardDescription>{day.title}</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
+                    {day.previewThumbnail ? (
+                      <LessonThumbnail
+                        src={day.previewThumbnail}
+                        title={day.title}
+                        size="lg"
+                        variant="admin"
+                      />
+                    ) : null}
                     {day.lessons.length > 0 ? (
                       <ul className="space-y-3 rounded-lg border border-zinc-200 p-3 text-sm">
                         {day.lessons.map((lesson) => (
@@ -125,6 +128,7 @@ export default async function AdminPage() {
                               src={lesson.thumbnailUrl}
                               title={lesson.title}
                               size="sm"
+                              variant="admin"
                             />
                             <span className="min-w-0 flex-1">
                               {lesson.order}. {lesson.title}
