@@ -39,8 +39,6 @@ export async function ProgramPreviewSection({ program }: { program: PreviewProgr
         id: day.id,
         title: day.title,
         description: day.description ?? null,
-        lessonCount: day.lessons.length,
-        lessonTitles: day.lessons.slice(0, 4).map((lesson) => lesson.title),
         previewVideo:
           previewLesson && media?.playbackId
             ? {
@@ -70,8 +68,6 @@ export async function ProgramPreviewSection({ program }: { program: PreviewProgr
             key={day.id}
             dayTitle={day.title}
             description={day.description}
-            lessonCount={day.lessonCount}
-            lessonTitles={day.lessonTitles}
             previewVideo={day.previewVideo}
           />
         ))}

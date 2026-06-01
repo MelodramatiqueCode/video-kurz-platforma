@@ -5,7 +5,6 @@ import { Play } from "lucide-react";
 import { PreviewVideoDialog } from "@/components/PreviewVideoDialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { formatLessonCount } from "@/lib/utils";
 
 type PreviewVideo = {
   lessonTitle: string;
@@ -18,16 +17,12 @@ type PreviewVideo = {
 type ProgramPreviewDayCardProps = {
   dayTitle: string;
   description: string | null;
-  lessonCount: number;
-  lessonTitles: string[];
   previewVideo: PreviewVideo | null;
 };
 
 export function ProgramPreviewDayCard({
   dayTitle,
   description,
-  lessonCount,
-  lessonTitles,
   previewVideo,
 }: ProgramPreviewDayCardProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -37,15 +32,9 @@ export function ProgramPreviewDayCard({
       <Card>
         <CardHeader>
           <CardTitle>{dayTitle}</CardTitle>
-          <CardDescription>{description ?? formatLessonCount(lessonCount)}</CardDescription>
+          {description ? <CardDescription>{description}</CardDescription> : null}
         </CardHeader>
-        <CardContent className="space-y-4">
-          <ul className="space-y-2 text-sm text-muted-foreground">
-            {lessonTitles.map((title, index) => (
-              <li key={`${title}-${index}`}>{title}</li>
-            ))}
-          </ul>
-
+        <CardContent>
           {previewVideo ? (
             <Button type="button" variant="outline" className="w-full" onClick={() => setDialogOpen(true)}>
               <Play className="h-4 w-4 fill-current" />
