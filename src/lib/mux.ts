@@ -45,7 +45,11 @@ export async function resolvePlaybackId(assetId: string) {
   const asset = await mux.video.assets.retrieve(assetId);
 
   if (hasMuxSigningKeys()) {
-    return asset.playback_ids?.find((playback) => playback.policy === "signed")?.id ?? null;
+    const signedPlayback = asset.playback_ids?.find((playback) => playback.policy === "signed");
+    if (signedPlayback?.id) return signedPlayback.id;
+
+    const created = await mux.video.assets.createPlaybackId(assetId, { policy: "signed" });
+    return created.id;
   }
 
   const existingPublic = asset.playback_ids?.find((playback) => playback.policy === "public");
@@ -53,6 +57,32 @@ export async function resolvePlaybackId(assetId: string) {
 
   const created = await mux.video.assets.createPlaybackId(assetId, { policy: "public" });
   return created.id;
+}
+
+export async function resolveLessonPlayback(lesson: {
+  muxAssetId: string | null;
+  muxPlaybackId: string | null;
+}) {
+  if (!lesson.muxAssetId) {
+    if (!lesson.muxPlaybackId) return null;
+
+    return {
+      playbackId: lesson.muxPlaybackId,
+      playbackToken: hasMuxSigningKeys()
+        ? await createSignedPlaybackToken(lesson.muxPlaybackId)
+        : null,
+    };
+  }
+
+  const playbackId = await resolvePlaybackId(lesson.muxAssetId);
+  if (!playbackId) return null;
+
+  return {
+    playbackId,
+    playbackToken: hasMuxSigningKeys()
+      ? await createSignedPlaybackToken(playbackId)
+      : null,
+  };
 }
 
 export async function createDirectUpload() {

@@ -6,7 +6,7 @@ import { MuxVideoPlayer } from "@/components/MuxVideoPlayer";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { requireEnrollment } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-import { createSignedPlaybackToken } from "@/lib/mux";
+import { resolveLessonPlayback } from "@/lib/mux";
 import { calculateDayProgress, getDayBySlug } from "@/lib/program";
 
 export const dynamic = "force-dynamic";
@@ -37,14 +37,14 @@ export default async function DayPage({
 
   const lessonsWithTokens = await Promise.all(
     day.lessons.map(async (lesson) => {
-      const playbackToken =
-        lesson.muxPlaybackId && process.env.MUX_TOKEN_ID && process.env.MUX_TOKEN_SECRET
-          ? await createSignedPlaybackToken(lesson.muxPlaybackId)
-          : null;
+      const playback = lesson.muxAssetId || lesson.muxPlaybackId
+        ? await resolveLessonPlayback(lesson)
+        : null;
 
       return {
         ...lesson,
-        playbackToken,
+        playbackId: playback?.playbackId ?? null,
+        playbackToken: playback?.playbackToken ?? null,
         completed: completedLessonIds.has(lesson.id),
       };
     }),
@@ -67,9 +67,9 @@ export default async function DayPage({
               {lesson.description ? <CardDescription>{lesson.description}</CardDescription> : null}
             </CardHeader>
             <CardContent className="space-y-6">
-              {lesson.muxPlaybackId ? (
+              {lesson.playbackId ? (
                 <MuxVideoPlayer
-                  playbackId={lesson.muxPlaybackId}
+                  playbackId={lesson.playbackId}
                   playbackToken={lesson.playbackToken}
                   title={lesson.title}
                 />
