@@ -22,10 +22,13 @@ type PreviewProgram = {
 };
 
 export async function ProgramPreviewSection({ program }: { program: PreviewProgram }) {
-  const enrichedDays = (await enrichProgramDaysWithThumbnails(program.days)).slice(0, 2);
+  const enrichedDays = await enrichProgramDaysWithThumbnails(program.days);
+  const previewDaySources = [enrichedDays[0], enrichedDays[18]].filter(
+    (day): day is (typeof enrichedDays)[number] => Boolean(day),
+  );
 
   const previewDays = await Promise.all(
-    enrichedDays.map(async (day) => {
+    previewDaySources.map(async (day) => {
       const previewLesson = day.lessons.find((lesson) => lessonHasVideo(lesson));
       const media = previewLesson ? await resolveLessonMedia(previewLesson) : null;
 
@@ -53,7 +56,7 @@ export async function ProgramPreviewSection({ program }: { program: PreviewProgr
       <div className="space-y-2">
         <h2 className="text-2xl font-semibold tracking-tight">Ukážka obsahu</h2>
         <p className="text-muted-foreground">
-          Pozrite si krátku ukážku z prvých dní programu {program.title}.
+          Pozrite si krátku ukážku z programu {program.title}.
         </p>
       </div>
 

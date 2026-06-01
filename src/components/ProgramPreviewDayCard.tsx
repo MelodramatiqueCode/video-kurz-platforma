@@ -44,6 +44,7 @@ export function ProgramPreviewDayCard({
               src={previewVideo.thumbnailUrl}
               alt=""
               className="h-36 w-full rounded-lg border border-border object-cover transition-opacity group-hover:opacity-90"
+              style={{ objectPosition: "center 35%" }}
               loading="lazy"
             />
             <span className="absolute inset-3 flex items-center justify-center rounded-lg bg-black/25 opacity-100 transition group-hover:bg-black/35">
