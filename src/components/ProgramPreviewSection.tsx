@@ -2,12 +2,12 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { ProgramPreviewDayCard } from "@/components/ProgramPreviewDayCard";
 import { Button } from "@/components/ui/button";
-import { resolveLessonPreviewMedia } from "@/lib/mux";
+import { resolveLessonMedia } from "@/lib/mux";
 import {
   LANDING_VIDEO_PREVIEW_DURATION_SECONDS,
   LANDING_VIDEO_PREVIEW_START_SECONDS,
 } from "@/lib/preview";
-import { enrichProgramDaysWithThumbnails, lessonHasVideo } from "@/lib/program";
+import { lessonHasVideo } from "@/lib/program";
 
 type PreviewProgram = {
   title: string;
@@ -26,17 +26,14 @@ type PreviewProgram = {
 };
 
 export async function ProgramPreviewSection({ program }: { program: PreviewProgram }) {
-  const enrichedDays = await enrichProgramDaysWithThumbnails(program.days);
-  const previewDaySources = [enrichedDays[0], enrichedDays[18]].filter(
-    (day): day is (typeof enrichedDays)[number] => Boolean(day),
+  const previewDaySources = [program.days[0], program.days[18]].filter(
+    (day): day is (typeof program.days)[number] => Boolean(day),
   );
 
   const previewDays = await Promise.all(
     previewDaySources.map(async (day) => {
       const previewLesson = day.lessons.find((lesson) => lessonHasVideo(lesson));
-      const media = previewLesson
-        ? await resolveLessonPreviewMedia(previewLesson, LANDING_VIDEO_PREVIEW_START_SECONDS)
-        : null;
+      const media = previewLesson ? await resolveLessonMedia(previewLesson) : null;
 
       return {
         id: day.id,
@@ -45,12 +42,11 @@ export async function ProgramPreviewSection({ program }: { program: PreviewProgr
         lessonCount: day.lessons.length,
         lessonTitles: day.lessons.slice(0, 4).map((lesson) => lesson.title),
         previewVideo:
-          previewLesson && media?.playbackId && media.thumbnailUrl
+          previewLesson && media?.playbackId
             ? {
                 lessonTitle: previewLesson.title,
                 playbackId: media.playbackId,
                 playbackToken: media.playbackToken,
-                thumbnailUrl: media.thumbnailUrl,
                 startSeconds: LANDING_VIDEO_PREVIEW_START_SECONDS,
                 durationSeconds: LANDING_VIDEO_PREVIEW_DURATION_SECONDS,
               }
