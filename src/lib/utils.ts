@@ -12,6 +12,12 @@ export function formatPrice(priceCents: number, currency = "eur") {
   }).format(priceCents / 100);
 }
 
+export function formatLessonCount(count: number) {
+  if (count === 1) return "1 lekcia";
+  if (count >= 2 && count <= 4) return `${count} lekcie`;
+  return `${count} lekcií`;
+}
+
 export function slugify(value: string) {
   return value
     .toLowerCase()
