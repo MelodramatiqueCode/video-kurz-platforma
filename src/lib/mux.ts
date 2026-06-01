@@ -85,10 +85,15 @@ export async function resolveLessonPlayback(lesson: {
   };
 }
 
-export async function createDirectUpload() {
+export async function createDirectUpload(corsOrigin?: string) {
   const mux = getMux();
+  const origin =
+    corsOrigin ??
+    process.env.NEXT_PUBLIC_APP_URL ??
+    "http://localhost:3000";
+
   return mux.video.uploads.create({
-    cors_origin: process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
+    cors_origin: origin,
     new_asset_settings: {
       playback_policy: [hasMuxSigningKeys() ? "signed" : "public"],
     },

@@ -21,7 +21,10 @@ export function AdminVideoUpload({ lessonId }: { lessonId: string }) {
 
     try {
       const uploadResponse = await fetch("/api/mux/upload", { method: "POST" });
-      if (!uploadResponse.ok) throw new Error("Nepodarilo sa vytvoriť upload URL");
+      if (!uploadResponse.ok) {
+        const data = (await uploadResponse.json().catch(() => null)) as { error?: string } | null;
+        throw new Error(data?.error ?? "Nepodarilo sa vytvoriť upload URL");
+      }
 
       const { uploadUrl, uploadId } = await uploadResponse.json();
 
