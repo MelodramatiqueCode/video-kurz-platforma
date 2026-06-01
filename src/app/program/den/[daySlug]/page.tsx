@@ -15,7 +15,6 @@ import {
   enrichProgramDaysWithThumbnails,
   getDayBySlug,
   getDayNeighbors,
-  getLessonNeighbors,
   isDayComplete,
   lessonHasVideo,
 } from "@/lib/program";
@@ -104,41 +103,38 @@ export default async function DayPage({
           </Card>
         ) : null}
 
-        {lessonsWithMedia.map((lesson) => {
-          const neighbors = getLessonNeighbors(program.days, lesson.id, day.slug);
-
-          return (
-            <Card key={lesson.id} id={`lesson-${lesson.id}`} className="scroll-mt-6">
-              <CardHeader>
-                <div className="flex items-start gap-4">
-                  <LessonThumbnail src={lesson.thumbnailUrl} title={lesson.title} size="md" />
-                  <div className="min-w-0 space-y-1">
-                    <CardTitle>{lesson.title}</CardTitle>
-                    {lesson.description ? <CardDescription>{lesson.description}</CardDescription> : null}
-                  </div>
+        {lessonsWithMedia.map((lesson) => (
+          <Card key={lesson.id} id={`lesson-${lesson.id}`} className="scroll-mt-6">
+            <CardHeader>
+              <div className="flex items-start gap-4">
+                <LessonThumbnail src={lesson.thumbnailUrl} title={lesson.title} size="md" />
+                <div className="min-w-0 space-y-1">
+                  <CardTitle>{lesson.title}</CardTitle>
+                  {lesson.description ? <CardDescription>{lesson.description}</CardDescription> : null}
                 </div>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {lesson.playbackId ? (
-                  <MuxVideoPlayer
-                    lessonId={lesson.id}
-                    playbackId={lesson.playbackId}
-                    playbackToken={lesson.playbackToken}
-                    title={lesson.title}
-                  />
-                ) : (
-                  <div className="rounded-xl border border-dashed border-border px-4 py-10 text-center text-sm text-muted-foreground">
-                    Video pre túto lekciu ešte nie je pripravené.
-                  </div>
-                )}
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {lesson.playbackId ? (
+                <MuxVideoPlayer
+                  lessonId={lesson.id}
+                  playbackId={lesson.playbackId}
+                  playbackToken={lesson.playbackToken}
+                  title={lesson.title}
+                />
+              ) : (
+                <div className="rounded-xl border border-dashed border-border px-4 py-10 text-center text-sm text-muted-foreground">
+                  Video pre túto lekciu ešte nie je pripravené.
+                </div>
+              )}
 
-                <AttachmentList attachments={lesson.attachments} />
-                <LessonProgressToggle lessonId={lesson.id} initialCompleted={lesson.completed} />
-                <LessonNavigation previous={neighbors.previous} nextDay={dayNeighbors.nextDay} />
-              </CardContent>
-            </Card>
-          );
-        })}
+              <AttachmentList attachments={lesson.attachments} />
+              <LessonProgressToggle lessonId={lesson.id} initialCompleted={lesson.completed} />
+            </CardContent>
+          </Card>
+        ))}
+
+        <LessonNavigation previousDay={dayNeighbors.previousDay} nextDay={dayNeighbors.nextDay} />
       </section>
     </div>
   );
