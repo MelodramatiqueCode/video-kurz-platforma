@@ -24,6 +24,10 @@ const editLessonSchema = z.object({
   order: z.number().int().positive(),
 });
 
+const deleteLessonSchema = z.object({
+  lessonId: z.string(),
+});
+
 export async function POST(request: Request) {
   await requireAdmin();
   const body = createLessonSchema.parse(await request.json());
@@ -92,4 +96,42 @@ export async function PATCH(request: Request) {
   });
 
   return NextResponse.json(lesson);
+}
+
+export async function DELETE(request: Request) {
+  await requireAdmin();
+  const body = deleteLessonSchema.parse(await request.json());
+
+  const lesson = await prisma.lesson.findUnique({
+    where: { id: body.lessonId },
+    include: { attachments: true },
+  });
+
+  if (!lesson) {
+    return NextResponse.json({ error: "Lekcia neexistuje" }, { status: 404 });
+  }
+
+  if (lesson.muxAssetId) {
+    try {
+      const mux = getMux();
+      await mux.video.assets.delete(lesson.muxAssetId);
+    } catch {
+      // Video v Muxe môže byť už zmazané — pokračujeme.
+    }
+  }
+
+  if (lesson.attachments.length > 0) {
+    try {
+      const { del } = await import("@vercel/blob");
+      await del(lesson.attachments.map((attachment) => attachment.blobUrl));
+    } catch {
+      // PDF v Blob storage nemusí existovať — pokračujeme.
+    }
+  }
+
+  await prisma.lesson.delete({
+    where: { id: body.lessonId },
+  });
+
+  return NextResponse.json({ ok: true });
 }

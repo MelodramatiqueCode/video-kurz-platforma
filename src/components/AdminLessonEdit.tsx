@@ -22,6 +22,7 @@ export function AdminLessonEdit({
   const [order, setOrder] = useState(String(lesson.order));
   const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
@@ -48,6 +49,33 @@ export function AdminLessonEdit({
     }
 
     setMessage("Lekcia bola uložená.");
+    router.refresh();
+  }
+
+  async function handleDelete() {
+    const confirmed = window.confirm(
+      `Naozaj chcete zmazať lekciu „${title}“? Vymaže sa aj video a prílohy.`,
+    );
+
+    if (!confirmed) return;
+
+    setDeleting(true);
+    setMessage(null);
+
+    const response = await fetch("/api/admin/lessons", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ lessonId: lesson.id }),
+    });
+
+    setDeleting(false);
+
+    if (!response.ok) {
+      const data = (await response.json().catch(() => null)) as { error?: string } | null;
+      setMessage(data?.error ?? "Zmazanie zlyhalo");
+      return;
+    }
+
     router.refresh();
   }
 
@@ -84,8 +112,16 @@ export function AdminLessonEdit({
         />
       </div>
       <div className="flex flex-wrap items-center gap-3">
-        <Button type="submit" disabled={loading}>
+        <Button type="submit" disabled={loading || deleting}>
           {loading ? "Ukladám..." : "Uložiť lekciu"}
+        </Button>
+        <Button
+          type="button"
+          variant="destructive"
+          disabled={loading || deleting}
+          onClick={handleDelete}
+        >
+          {deleting ? "Mažem..." : "Zmazať lekciu"}
         </Button>
         {message ? <p className="text-sm text-zinc-600">{message}</p> : null}
       </div>
