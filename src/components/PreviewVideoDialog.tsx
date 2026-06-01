@@ -56,11 +56,6 @@ export function PreviewVideoDialog({
       <div className="flex items-start justify-between gap-4 border-b border-border px-5 py-4">
         <div className="min-w-0 space-y-1">
           <p className="text-sm font-medium text-primary">{dayTitle}</p>
-          <h3 className="text-lg font-semibold tracking-tight">{lessonTitle}</h3>
-          <p className="text-sm text-muted-foreground">
-            Krátka ukážka ({durationSeconds} s od {Math.floor(startSeconds / 60)}:
-            {(startSeconds % 60).toString().padStart(2, "0")})
-          </p>
         </div>
         <Button
           type="button"
