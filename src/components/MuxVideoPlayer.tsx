@@ -8,14 +8,14 @@ export function MuxVideoPlayer({
   title,
 }: {
   playbackId: string;
-  playbackToken: string;
+  playbackToken?: string | null;
   title: string;
 }) {
   return (
     <div className="overflow-hidden rounded-xl border border-zinc-200 bg-black">
       <MuxPlayer
         playbackId={playbackId}
-        tokens={{ playback: playbackToken }}
+        tokens={playbackToken ? { playback: playbackToken } : undefined}
         metadata={{ video_title: title }}
         streamType="on-demand"
         className="aspect-video w-full"

@@ -3,7 +3,7 @@ import { Prisma } from "@prisma/client";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-import { getMux } from "@/lib/mux";
+import { getMux, resolvePlaybackId } from "@/lib/mux";
 
 const createLessonSchema = z.object({
   dayId: z.string(),
@@ -84,8 +84,7 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: "Video sa ešte spracováva" }, { status: 409 });
   }
 
-  const asset = await mux.video.assets.retrieve(assetId);
-  const playbackId = asset.playback_ids?.[0]?.id ?? null;
+  const playbackId = await resolvePlaybackId(assetId);
 
   const lesson = await prisma.lesson.update({
     where: { id: body.lessonId },

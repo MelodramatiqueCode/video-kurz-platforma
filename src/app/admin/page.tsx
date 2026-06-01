@@ -51,6 +51,19 @@ export default async function AdminPage() {
       </div>
 
       <AdminProgramSettings program={program} />
+
+      {!program.published ? (
+        <Card className="border-amber-200 bg-amber-50">
+          <CardHeader>
+            <CardTitle>Program nie je publikovaný</CardTitle>
+            <CardDescription className="text-amber-900">
+              Na úvodnej stránke sa zobrazí len informácia o nepublikovanom programe. Zaškrtnite
+              „Publikované“ v nastaveniach programu a uložte zmeny.
+            </CardDescription>
+          </CardHeader>
+        </Card>
+      ) : null}
+
       <AdminGrantEnrollment programId={program.id} />
 
       <div className="grid gap-6 lg:grid-cols-[1fr_360px]">

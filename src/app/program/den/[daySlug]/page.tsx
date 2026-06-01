@@ -67,7 +67,7 @@ export default async function DayPage({
               {lesson.description ? <CardDescription>{lesson.description}</CardDescription> : null}
             </CardHeader>
             <CardContent className="space-y-6">
-              {lesson.muxPlaybackId && lesson.playbackToken ? (
+              {lesson.muxPlaybackId ? (
                 <MuxVideoPlayer
                   playbackId={lesson.muxPlaybackId}
                   playbackToken={lesson.playbackToken}
