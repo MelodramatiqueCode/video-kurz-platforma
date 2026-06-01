@@ -26,7 +26,7 @@ export function LessonThumbnail({
     <img
       src={src}
       alt={`Ukážka videa: ${title}`}
-      className={cn("shrink-0 rounded-md border border-zinc-200 object-cover", sizeClass)}
+      className={cn("shrink-0 rounded-lg border border-border object-cover", sizeClass)}
       style={variant === "admin" ? { objectPosition: "center 35%" } : undefined}
       loading="lazy"
     />

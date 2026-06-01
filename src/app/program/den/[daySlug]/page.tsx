@@ -63,10 +63,11 @@ export default async function DayPage({
     <div className="grid gap-8 lg:grid-cols-[280px_1fr]">
       <DaySidebar days={dayNav} activeSlug={day.slug} />
 
-      <section className="space-y-8">
+      <section className="min-w-0 space-y-8">
         <div className="space-y-2">
-          <h1 className="text-3xl font-semibold">{day.title}</h1>
-          {day.description ? <p className="text-zinc-600">{day.description}</p> : null}
+          <p className="text-sm font-medium text-primary">Deň programu</p>
+          <h1 className="text-3xl font-semibold tracking-tight">{day.title}</h1>
+          {day.description ? <p className="text-muted-foreground">{day.description}</p> : null}
         </div>
 
         {lessonsWithMedia.length > 0 ? (
@@ -81,7 +82,7 @@ export default async function DayPage({
                   <li key={lesson.id}>
                     <a
                       href={`#lesson-${lesson.id}`}
-                      className="flex items-center gap-3 rounded-lg border border-zinc-200 p-3 transition-colors hover:border-zinc-300 hover:bg-zinc-50"
+                      className="flex items-center gap-3 rounded-xl border border-border bg-card p-3 transition-all hover:border-primary/30 hover:shadow-sm"
                     >
                       <LessonThumbnail
                         src={lesson.thumbnailUrl}
@@ -119,7 +120,7 @@ export default async function DayPage({
                   title={lesson.title}
                 />
               ) : (
-                <div className="rounded-xl border border-dashed border-zinc-300 px-4 py-10 text-center text-sm text-zinc-500">
+                <div className="rounded-xl border border-dashed border-border px-4 py-10 text-center text-sm text-muted-foreground">
                   Video pre túto lekciu ešte nie je pripravené.
                 </div>
               )}

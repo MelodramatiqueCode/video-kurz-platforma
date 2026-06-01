@@ -10,14 +10,14 @@ export default async function LoginPage({
 
   return (
     <div className="mx-auto flex max-w-md px-4 py-16">
-      <Card className="w-full">
+      <Card className="w-full border-primary/10 shadow-lg shadow-primary/5">
         <CardHeader>
           <CardTitle>Prihlásenie</CardTitle>
           <CardDescription>Vytvorte si účet alebo sa prihláste pre prístup k programu.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {params.error === "google-auth" ? (
-            <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
               Prihlásenie cez Google zlyhalo. Skúste to znova alebo použite email a heslo.
             </p>
           ) : null}
