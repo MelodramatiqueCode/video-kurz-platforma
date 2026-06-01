@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AdminAttachmentUpload } from "@/components/AdminAttachmentUpload";
+import { AdminDayEdit } from "@/components/AdminDayEdit";
 import { AdminLessonEdit } from "@/components/AdminLessonEdit";
 import { AdminLessonForm } from "@/components/AdminLessonForm";
 import { AdminVideoUpload } from "@/components/AdminVideoUpload";
@@ -41,6 +42,12 @@ export default async function AdminDayPage({
         <h1 className="text-3xl font-semibold">{day.title}</h1>
         <p className="text-zinc-600">{day.description ?? day.program.title}</p>
       </div>
+
+      <AdminDayEdit
+        day={day}
+        lessonCount={day.lessons.length}
+        showManageLink={false}
+      />
 
       <AdminLessonForm dayId={day.id} nextOrder={nextOrder} />
 

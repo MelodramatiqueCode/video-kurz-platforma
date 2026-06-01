@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { AdminDayEdit } from "@/components/AdminDayEdit";
 import { AdminDayForm } from "@/components/AdminDayForm";
 import { AdminGrantEnrollment } from "@/components/AdminGrantEnrollment";
 import { AdminProgramSettings } from "@/components/AdminProgramSettings";
@@ -80,15 +80,11 @@ export default async function AdminPage() {
             program.days.map((day) => (
               <Card key={day.id}>
                 <CardHeader>
-                  <CardTitle>{day.title}</CardTitle>
-                  <CardDescription>
-                    {day._count.lessons} lekcií · poradie {day.order}
-                  </CardDescription>
+                  <CardTitle>Deň {day.order}</CardTitle>
+                  <CardDescription>{day._count.lessons} lekcií</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <Link href={`/admin/den/${day.id}`} className="font-medium underline">
-                    Upraviť deň
-                  </Link>
+                  <AdminDayEdit day={day} lessonCount={day._count.lessons} />
                 </CardContent>
               </Card>
             ))

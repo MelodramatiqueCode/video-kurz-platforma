@@ -47,6 +47,8 @@ for (const optional of [
   "STRIPE_WEBHOOK_SECRET",
   "MUX_TOKEN_ID",
   "MUX_TOKEN_SECRET",
+  "MUX_SIGNING_KEY",
+  "MUX_PRIVATE_KEY",
 ]) {
   const value = readOptionalEnv(optional);
   if (value) vars[optional] = value;
