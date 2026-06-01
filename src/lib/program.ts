@@ -64,3 +64,16 @@ export function calculateDayProgress(
   const completed = lessons.filter((lesson) => completedLessonIds.has(lesson.id)).length;
   return Math.round((completed / lessons.length) * 100);
 }
+
+export function lessonHasVideo(lesson: {
+  muxAssetId?: string | null;
+  muxPlaybackId?: string | null;
+}) {
+  return Boolean(lesson.muxAssetId || lesson.muxPlaybackId);
+}
+
+export function countLessonsWithVideo(
+  lessons: { muxAssetId?: string | null; muxPlaybackId?: string | null }[],
+) {
+  return lessons.filter(lessonHasVideo).length;
+}

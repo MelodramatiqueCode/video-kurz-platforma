@@ -6,8 +6,10 @@ import { AdminLessonEdit } from "@/components/AdminLessonEdit";
 import { AdminLessonForm } from "@/components/AdminLessonForm";
 import { AdminVideoUpload } from "@/components/AdminVideoUpload";
 import { Badge } from "@/components/ui/badge";
+import { VideoStatusBadge } from "@/components/VideoStatusBadge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { prisma } from "@/lib/db";
+import { lessonHasVideo } from "@/lib/program";
 
 export const dynamic = "force-dynamic";
 
@@ -61,11 +63,7 @@ export default async function AdminDayPage({
             <CardContent className="space-y-4">
               <AdminLessonEdit lesson={lesson} />
               <div className="flex flex-wrap gap-2">
-                {lesson.muxPlaybackId ? (
-                  <Badge>Video pripravené</Badge>
-                ) : (
-                  <Badge>Video chýba</Badge>
-                )}
+                <VideoStatusBadge ready={lessonHasVideo(lesson)} />
                 <Badge>{lesson.attachments.length} súborov</Badge>
               </div>
               <AdminVideoUpload lessonId={lesson.id} />
