@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { DaySidebar } from "@/components/AppHeader";
-import { VideoCountBadge, VideoStatusBadge } from "@/components/VideoStatusBadge";
+import { LessonThumbnail } from "@/components/LessonThumbnail";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { requireEnrollment } from "@/lib/auth";
@@ -8,8 +8,7 @@ import { prisma } from "@/lib/db";
 import {
   calculateDayProgress,
   calculateProgramProgress,
-  countLessonsWithVideo,
-  lessonHasVideo,
+  enrichProgramDaysWithThumbnails,
 } from "@/lib/program";
 
 export const dynamic = "force-dynamic";
@@ -25,14 +24,17 @@ export default async function ProgramDashboardPage() {
   const allLessonIds = program.days.flatMap((day) => day.lessons.map((lesson) => lesson.id));
   const overallProgress = calculateProgramProgress(allLessonIds, completedLessonIds);
 
-  const dayNav = program.days.map((day) => ({
+  const daysWithThumbnails = await enrichProgramDaysWithThumbnails(program.days);
+
+  const dayNav = daysWithThumbnails.map((day) => ({
     id: day.id,
     title: day.title,
     slug: day.slug,
     progress: calculateDayProgress(day.lessons, completedLessonIds),
+    thumbnailUrl: day.previewThumbnail,
   }));
 
-  const firstDay = program.days[0];
+  const firstDay = daysWithThumbnails[0];
 
   return (
     <div className="grid gap-8 lg:grid-cols-[280px_1fr]">
@@ -55,27 +57,32 @@ export default async function ProgramDashboardPage() {
         </Card>
 
         <div className="grid gap-4 md:grid-cols-2">
-          {program.days.map((day) => {
+          {daysWithThumbnails.map((day) => {
             const dayProgress = calculateDayProgress(day.lessons, completedLessonIds);
-            const videosReady = countLessonsWithVideo(day.lessons);
 
             return (
-              <Card key={day.id}>
-                <CardHeader>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <CardTitle>{day.title}</CardTitle>
-                    <VideoCountBadge ready={videosReady} total={day.lessons.length} />
+              <Card key={day.id} className="overflow-hidden">
+                {day.previewThumbnail ? (
+                  <div className="border-b border-zinc-200 p-3">
+                    <LessonThumbnail src={day.previewThumbnail} title={day.title} size="lg" />
                   </div>
+                ) : null}
+                <CardHeader>
+                  <CardTitle>{day.title}</CardTitle>
                   <CardDescription>{day.description ?? `${day.lessons.length} lekcií`}</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <Progress value={dayProgress} />
                   {day.lessons.length > 0 ? (
-                    <ul className="space-y-2 text-sm">
+                    <ul className="space-y-3 text-sm">
                       {day.lessons.map((lesson) => (
-                        <li key={lesson.id} className="flex items-center justify-between gap-3">
-                          <span>{lesson.title}</span>
-                          <VideoStatusBadge ready={lessonHasVideo(lesson)} />
+                        <li key={lesson.id} className="flex items-center gap-3">
+                          <LessonThumbnail
+                            src={lesson.thumbnailUrl}
+                            title={lesson.title}
+                            size="sm"
+                          />
+                          <span className="min-w-0 flex-1">{lesson.title}</span>
                         </li>
                       ))}
                     </ul>

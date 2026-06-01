@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db";
+import { resolveLessonThumbnail } from "@/lib/mux";
 
 export async function getPublishedProgram() {
   return prisma.program.findFirst({
@@ -76,4 +77,54 @@ export function countLessonsWithVideo(
   lessons: { muxAssetId?: string | null; muxPlaybackId?: string | null }[],
 ) {
   return lessons.filter(lessonHasVideo).length;
+}
+
+type LessonWithMux = {
+  id: string;
+  title: string;
+  muxAssetId: string | null;
+  muxPlaybackId: string | null;
+};
+
+export type LessonWithThumbnail = LessonWithMux & {
+  thumbnailUrl: string | null;
+};
+
+export type DayWithThumbnails<T extends { lessons: LessonWithMux[] }> = Omit<T, "lessons"> & {
+  lessons: Array<T["lessons"][number] & { thumbnailUrl: string | null }>;
+  previewThumbnail: string | null;
+};
+
+export async function enrichLessonsWithThumbnails<T extends LessonWithMux>(
+  lessons: T[],
+): Promise<Array<T & { thumbnailUrl: string | null }>> {
+  return Promise.all(
+    lessons.map(async (lesson) => ({
+      ...lesson,
+      thumbnailUrl: lessonHasVideo(lesson) ? await resolveLessonThumbnail(lesson) : null,
+    })),
+  );
+}
+
+export async function enrichProgramDaysWithThumbnails<
+  T extends {
+    id: string;
+    title: string;
+    slug: string;
+    description?: string | null;
+    lessons: LessonWithMux[];
+  },
+>(days: T[]): Promise<Array<DayWithThumbnails<T>>> {
+  return Promise.all(
+    days.map(async (day) => {
+      const lessons = await enrichLessonsWithThumbnails(day.lessons);
+      const previewLesson = lessons.find((lesson) => lesson.thumbnailUrl);
+
+      return {
+        ...day,
+        lessons,
+        previewThumbnail: previewLesson?.thumbnailUrl ?? null,
+      };
+    }),
+  );
 }

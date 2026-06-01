@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
+import { LessonThumbnail } from "@/components/LessonThumbnail";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
@@ -12,6 +13,7 @@ type DayNavItem = {
   title: string;
   slug: string;
   progress: number;
+  thumbnailUrl?: string | null;
 };
 
 function SignOutButton() {
@@ -100,9 +102,18 @@ export function DaySidebar({
                 : "border-zinc-200 bg-white hover:border-zinc-300",
             )}
           >
-            <div className="flex items-center justify-between gap-2">
-              <span className="font-medium">{day.title}</span>
-              <span className="text-xs opacity-80">{day.progress}%</span>
+            <div className="flex items-center gap-3">
+              <LessonThumbnail
+                src={day.thumbnailUrl ?? null}
+                title={day.title}
+                size="xs"
+              />
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="truncate font-medium">{day.title}</span>
+                  <span className="shrink-0 text-xs opacity-80">{day.progress}%</span>
+                </div>
+              </div>
             </div>
           </Link>
         ))}

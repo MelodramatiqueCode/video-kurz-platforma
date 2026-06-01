@@ -40,6 +40,34 @@ export async function createSignedPlaybackToken(playbackId: string) {
   }
 }
 
+export async function createSignedThumbnailToken(playbackId: string) {
+  if (!hasMuxSigningKeys()) return null;
+
+  try {
+    const mux = getMux();
+    return await mux.jwt.signPlaybackId(playbackId, {
+      expiration: "1h",
+      type: "thumbnail",
+    });
+  } catch {
+    return null;
+  }
+}
+
+export function buildThumbnailUrl(playbackId: string, token?: string | null) {
+  const params = new URLSearchParams({
+    width: "320",
+    height: "180",
+    fit_mode: "smartcrop",
+  });
+
+  if (token) {
+    params.set("token", token);
+  }
+
+  return `https://image.mux.com/${playbackId}/thumbnail.jpg?${params.toString()}`;
+}
+
 export async function resolvePlaybackId(assetId: string) {
   const mux = getMux();
   const asset = await mux.video.assets.retrieve(assetId);
@@ -83,6 +111,38 @@ export async function resolveLessonPlayback(lesson: {
       ? await createSignedPlaybackToken(playbackId)
       : null,
   };
+}
+
+export async function resolveLessonMedia(lesson: {
+  muxAssetId: string | null;
+  muxPlaybackId: string | null;
+}) {
+  const playback = await resolveLessonPlayback(lesson);
+  if (!playback?.playbackId) {
+    return {
+      playbackId: null,
+      playbackToken: null,
+      thumbnailUrl: null,
+    };
+  }
+
+  const thumbnailToken = hasMuxSigningKeys()
+    ? await createSignedThumbnailToken(playback.playbackId)
+    : null;
+
+  return {
+    playbackId: playback.playbackId,
+    playbackToken: playback.playbackToken,
+    thumbnailUrl: buildThumbnailUrl(playback.playbackId, thumbnailToken),
+  };
+}
+
+export async function resolveLessonThumbnail(lesson: {
+  muxAssetId: string | null;
+  muxPlaybackId: string | null;
+}) {
+  const media = await resolveLessonMedia(lesson);
+  return media.thumbnailUrl;
 }
 
 export async function createDirectUpload(corsOrigin?: string) {

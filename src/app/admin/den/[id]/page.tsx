@@ -5,11 +5,11 @@ import { AdminDayEdit } from "@/components/AdminDayEdit";
 import { AdminLessonEdit } from "@/components/AdminLessonEdit";
 import { AdminLessonForm } from "@/components/AdminLessonForm";
 import { AdminVideoUpload } from "@/components/AdminVideoUpload";
+import { LessonThumbnail } from "@/components/LessonThumbnail";
 import { Badge } from "@/components/ui/badge";
-import { VideoStatusBadge } from "@/components/VideoStatusBadge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { prisma } from "@/lib/db";
-import { lessonHasVideo } from "@/lib/program";
+import { enrichLessonsWithThumbnails } from "@/lib/program";
 
 export const dynamic = "force-dynamic";
 
@@ -33,6 +33,7 @@ export default async function AdminDayPage({
 
   if (!day) notFound();
 
+  const lessonsWithThumbnails = await enrichLessonsWithThumbnails(day.lessons);
   const nextOrder = day.lessons.length + 1;
 
   return (
@@ -54,16 +55,20 @@ export default async function AdminDayPage({
       <AdminLessonForm dayId={day.id} nextOrder={nextOrder} />
 
       <div className="space-y-6">
-        {day.lessons.map((lesson) => (
+        {lessonsWithThumbnails.map((lesson) => (
           <Card key={lesson.id}>
             <CardHeader>
-              <CardTitle>Lekcia {lesson.order}</CardTitle>
-              <CardDescription>Upravte názov, popis a poradie lekcie.</CardDescription>
+              <div className="flex items-start gap-4">
+                <LessonThumbnail src={lesson.thumbnailUrl} title={lesson.title} size="md" />
+                <div className="min-w-0 space-y-1">
+                  <CardTitle>Lekcia {lesson.order}</CardTitle>
+                  <CardDescription>Upravte názov, popis a poradie lekcie.</CardDescription>
+                </div>
+              </div>
             </CardHeader>
             <CardContent className="space-y-4">
               <AdminLessonEdit lesson={lesson} />
               <div className="flex flex-wrap gap-2">
-                <VideoStatusBadge ready={lessonHasVideo(lesson)} />
                 <Badge>{lesson.attachments.length} súborov</Badge>
               </div>
               <AdminVideoUpload lessonId={lesson.id} />

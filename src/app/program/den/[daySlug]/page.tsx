@@ -1,13 +1,20 @@
+import { Check } from "lucide-react";
 import { notFound } from "next/navigation";
 import { AttachmentList } from "@/components/AttachmentList";
 import { DaySidebar } from "@/components/AppHeader";
 import { LessonProgressToggle } from "@/components/LessonProgressToggle";
+import { LessonThumbnail } from "@/components/LessonThumbnail";
 import { MuxVideoPlayer } from "@/components/MuxVideoPlayer";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { requireEnrollment } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-import { resolveLessonPlayback } from "@/lib/mux";
-import { calculateDayProgress, getDayBySlug } from "@/lib/program";
+import { resolveLessonMedia } from "@/lib/mux";
+import {
+  calculateDayProgress,
+  enrichProgramDaysWithThumbnails,
+  getDayBySlug,
+  lessonHasVideo,
+} from "@/lib/program";
 
 export const dynamic = "force-dynamic";
 
@@ -28,23 +35,25 @@ export default async function DayPage({
   });
   const completedLessonIds = new Set(progressRows.map((row) => row.lessonId));
 
-  const dayNav = program.days.map((item) => ({
+  const daysWithThumbnails = await enrichProgramDaysWithThumbnails(program.days);
+
+  const dayNav = daysWithThumbnails.map((item) => ({
     id: item.id,
     title: item.title,
     slug: item.slug,
     progress: calculateDayProgress(item.lessons, completedLessonIds),
+    thumbnailUrl: item.previewThumbnail,
   }));
 
-  const lessonsWithTokens = await Promise.all(
+  const lessonsWithMedia = await Promise.all(
     day.lessons.map(async (lesson) => {
-      const playback = lesson.muxAssetId || lesson.muxPlaybackId
-        ? await resolveLessonPlayback(lesson)
-        : null;
+      const media = lessonHasVideo(lesson) ? await resolveLessonMedia(lesson) : null;
 
       return {
         ...lesson,
-        playbackId: playback?.playbackId ?? null,
-        playbackToken: playback?.playbackToken ?? null,
+        playbackId: media?.playbackId ?? null,
+        playbackToken: media?.playbackToken ?? null,
+        thumbnailUrl: media?.thumbnailUrl ?? null,
         completed: completedLessonIds.has(lesson.id),
       };
     }),
@@ -60,11 +69,47 @@ export default async function DayPage({
           {day.description ? <p className="text-zinc-600">{day.description}</p> : null}
         </div>
 
-        {lessonsWithTokens.map((lesson) => (
-          <Card key={lesson.id}>
+        {lessonsWithMedia.length > 0 ? (
+          <Card>
             <CardHeader>
-              <CardTitle>{lesson.title}</CardTitle>
-              {lesson.description ? <CardDescription>{lesson.description}</CardDescription> : null}
+              <CardTitle>Lekcie v tomto dni</CardTitle>
+              <CardDescription>Rýchly prehľad s ukážkami videí</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ul className="grid gap-3 sm:grid-cols-2">
+                {lessonsWithMedia.map((lesson) => (
+                  <li key={lesson.id}>
+                    <a
+                      href={`#lesson-${lesson.id}`}
+                      className="flex items-center gap-3 rounded-lg border border-zinc-200 p-3 transition-colors hover:border-zinc-300 hover:bg-zinc-50"
+                    >
+                      <LessonThumbnail
+                        src={lesson.thumbnailUrl}
+                        title={lesson.title}
+                        size="sm"
+                      />
+                      <span className="min-w-0 flex-1 text-sm font-medium">{lesson.title}</span>
+                      {lesson.completed ? (
+                        <Check className="h-4 w-4 shrink-0 text-emerald-600" aria-label="Dokončené" />
+                      ) : null}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </CardContent>
+          </Card>
+        ) : null}
+
+        {lessonsWithMedia.map((lesson) => (
+          <Card key={lesson.id} id={`lesson-${lesson.id}`} className="scroll-mt-6">
+            <CardHeader>
+              <div className="flex items-start gap-4">
+                <LessonThumbnail src={lesson.thumbnailUrl} title={lesson.title} size="md" />
+                <div className="min-w-0 space-y-1">
+                  <CardTitle>{lesson.title}</CardTitle>
+                  {lesson.description ? <CardDescription>{lesson.description}</CardDescription> : null}
+                </div>
+              </div>
             </CardHeader>
             <CardContent className="space-y-6">
               {lesson.playbackId ? (
