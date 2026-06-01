@@ -23,7 +23,7 @@ type PreviewProgram = {
 
 export async function ProgramPreviewSection({ program }: { program: PreviewProgram }) {
   const enrichedDays = await enrichProgramDaysWithThumbnails(program.days);
-  const previewDaySources = [enrichedDays[0], enrichedDays[18]].filter(
+  const previewDaySources = [enrichedDays[1], enrichedDays[18]].filter(
     (day): day is (typeof enrichedDays)[number] => Boolean(day),
   );
 
