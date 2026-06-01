@@ -1,10 +1,12 @@
 "use client";
 
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
-import MuxPlayer from "@mux/mux-player-react";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+
+const MuxPlayer = dynamic(() => import("@mux/mux-player-react"), { ssr: false });
 
 type PreviewVideoDialogProps = {
   dayTitle: string;
@@ -29,6 +31,7 @@ export function PreviewVideoDialog({
 }: PreviewVideoDialogProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [previewEnded, setPreviewEnded] = useState(false);
+  const [playerError, setPlayerError] = useState(false);
   const previewEndSeconds = startSeconds + durationSeconds;
 
   useEffect(() => {
@@ -37,6 +40,7 @@ export function PreviewVideoDialog({
 
     if (open) {
       setPreviewEnded(false);
+      setPlayerError(false);
       if (!dialog.open) dialog.showModal();
       return;
     }
@@ -70,7 +74,7 @@ export function PreviewVideoDialog({
       </div>
 
       <div className="relative bg-black">
-        {open ? (
+        {open && !playerError ? (
           <MuxPlayer
             key={`${playbackId}-${startSeconds}`}
             playbackId={playbackId}
@@ -79,6 +83,7 @@ export function PreviewVideoDialog({
             streamType="on-demand"
             startTime={startSeconds > 0 ? startSeconds : undefined}
             className="aspect-video w-full"
+            onError={() => setPlayerError(true)}
             onTimeUpdate={(event) => {
               const media = event.target as HTMLMediaElement;
               if (media.currentTime >= previewEndSeconds) {
@@ -87,6 +92,15 @@ export function PreviewVideoDialog({
               }
             }}
           />
+        ) : null}
+
+        {playerError ? (
+          <div className="flex aspect-video flex-col items-center justify-center gap-3 px-6 text-center text-white">
+            <p className="text-sm text-white/80">Ukážku sa nepodarilo načítať.</p>
+            <Button asChild variant="outline" className="border-white/30 bg-transparent text-white hover:bg-white/10">
+              <Link href="/prihlasenie">Prihlásiť sa pre plný prístup</Link>
+            </Button>
+          </div>
         ) : null}
 
         {previewEnded ? (

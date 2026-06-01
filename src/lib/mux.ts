@@ -129,24 +129,32 @@ export async function resolveLessonMedia(lesson: {
   muxAssetId: string | null;
   muxPlaybackId: string | null;
 }) {
-  const playback = await resolveLessonPlayback(lesson);
-  if (!playback?.playbackId) {
+  try {
+    const playback = await resolveLessonPlayback(lesson);
+    if (!playback?.playbackId) {
+      return {
+        playbackId: null,
+        playbackToken: null,
+        thumbnailUrl: null,
+      };
+    }
+
+    const thumbnailToken = hasMuxSigningKeys()
+      ? await createSignedThumbnailToken(playback.playbackId)
+      : null;
+
+    return {
+      playbackId: playback.playbackId,
+      playbackToken: playback.playbackToken,
+      thumbnailUrl: buildThumbnailUrl(playback.playbackId, thumbnailToken),
+    };
+  } catch {
     return {
       playbackId: null,
       playbackToken: null,
       thumbnailUrl: null,
     };
   }
-
-  const thumbnailToken = hasMuxSigningKeys()
-    ? await createSignedThumbnailToken(playback.playbackId)
-    : null;
-
-  return {
-    playbackId: playback.playbackId,
-    playbackToken: playback.playbackToken,
-    thumbnailUrl: buildThumbnailUrl(playback.playbackId, thumbnailToken),
-  };
 }
 
 export async function resolveLessonPreviewMedia(

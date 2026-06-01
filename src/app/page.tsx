@@ -3,6 +3,7 @@ import { BookOpen, CheckCircle2, PlayCircle } from "lucide-react";
 import { BrandLogoLarge } from "@/components/BrandLogo";
 import { BuyButton } from "@/components/BuyButton";
 import { FaqSection } from "@/components/FaqSection";
+import { ProgramPreviewBoundary } from "@/components/ProgramPreviewBoundary";
 import { ProgramPreviewSection } from "@/components/ProgramPreviewSection";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -128,7 +129,9 @@ export default async function HomePage({
         </div>
 
         <div className="mt-16 space-y-16">
-          <ProgramPreviewSection program={program} />
+          <ProgramPreviewBoundary>
+            <ProgramPreviewSection program={program} />
+          </ProgramPreviewBoundary>
           <FaqSection />
         </div>
       </div>
