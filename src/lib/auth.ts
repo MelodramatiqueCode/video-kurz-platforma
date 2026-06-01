@@ -112,3 +112,50 @@ export async function requireEnrollment(programSlug?: string) {
 
   return { user, program, enrollment };
 }
+
+export async function requireProgramAccess(programSlug?: string) {
+  const user = await requireUser("/prihlasenie?next=/program");
+  await ensureUserRecord(user.id, user.email ?? "");
+
+  const programInclude = {
+    days: {
+      orderBy: { order: "asc" as const },
+      include: {
+        lessons: {
+          orderBy: { order: "asc" as const },
+          include: { attachments: true },
+        },
+      },
+    },
+  };
+
+  const program = programSlug
+    ? await prisma.program.findUnique({ where: { slug: programSlug }, include: programInclude })
+    : await prisma.program.findFirst({
+        where: { published: true },
+        orderBy: { createdAt: "asc" },
+        include: programInclude,
+      });
+
+  if (!program) redirect("/");
+
+  const enrollment = await prisma.enrollment.findUnique({
+    where: {
+      userId_programId: {
+        userId: user.id,
+        programId: program.id,
+      },
+    },
+  });
+
+  const isAdmin = isAdminEmail(user.email);
+
+  if (!enrollment && !isAdmin) redirect("/?needsPurchase=1");
+
+  return {
+    user,
+    program,
+    enrollment,
+    isAdminPreview: isAdmin && !enrollment,
+  };
+}

@@ -2,8 +2,12 @@ import { put } from "@vercel/blob";
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { enforceRateLimit } from "@/lib/rate-limit";
 
 export async function POST(request: Request) {
+  const limited = enforceRateLimit(request, "blob-upload", 30, 60_000);
+  if (limited) return limited;
+
   await requireAdmin();
 
   const formData = await request.formData();

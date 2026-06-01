@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Menu, X } from "lucide-react";
+import { Menu, X, Check } from "lucide-react";
 import { useState } from "react";
 import { BrandLogo } from "@/components/BrandLogo";
 import { LessonThumbnail } from "@/components/LessonThumbnail";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
@@ -16,6 +17,7 @@ type DayNavItem = {
   slug: string;
   progress: number;
   thumbnailUrl?: string | null;
+  completed?: boolean;
 };
 
 function SignOutButton({ compact = false }: { compact?: boolean }) {
@@ -90,6 +92,7 @@ export function AppHeader({
               {link.label}
             </NavLink>
           ))}
+          <ThemeToggle />
           {email ? (
             <>
               <NavLink href="/profil" active={pathname.startsWith("/profil")}>
@@ -187,8 +190,11 @@ function DayNavLink({
         <div className="min-w-0 flex-1">
           <div className="flex items-center justify-between gap-2">
             <span className="truncate text-sm font-medium">{day.title}</span>
-            <span className={cn("shrink-0 text-xs", active ? "opacity-90" : "text-muted-foreground")}>
-              {day.progress}%
+            <span className="flex shrink-0 items-center gap-1">
+              {day.completed ? <Check className="h-3.5 w-3.5" aria-label="Deň dokončený" /> : null}
+              <span className={cn("text-xs", active ? "opacity-90" : "text-muted-foreground")}>
+                {day.progress}%
+              </span>
             </span>
           </div>
         </div>

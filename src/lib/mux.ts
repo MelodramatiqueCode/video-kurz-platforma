@@ -159,3 +159,28 @@ export async function createDirectUpload(corsOrigin?: string) {
     },
   });
 }
+
+export async function deleteMuxAsset(assetId: string) {
+  try {
+    const mux = getMux();
+    await mux.video.assets.delete(assetId);
+  } catch {
+    // Asset may already be deleted.
+  }
+}
+
+export type MuxAssetStatus = "preparing" | "ready" | "errored" | "missing";
+
+export async function getMuxAssetStatus(assetId: string | null): Promise<MuxAssetStatus> {
+  if (!assetId) return "missing";
+
+  try {
+    const mux = getMux();
+    const asset = await mux.video.assets.retrieve(assetId);
+    if (asset.status === "ready") return "ready";
+    if (asset.status === "errored") return "errored";
+    return "preparing";
+  } catch {
+    return "missing";
+  }
+}

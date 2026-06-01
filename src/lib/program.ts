@@ -128,3 +128,69 @@ export async function enrichProgramDaysWithThumbnails<
     }),
   );
 }
+
+type OrderedDay = {
+  id: string;
+  title: string;
+  slug: string;
+  lessons: { id: string; title: string }[];
+};
+
+export function isDayComplete(day: { lessons: { id: string }[] }, completedLessonIds: Set<string>) {
+  if (day.lessons.length === 0) return false;
+  return day.lessons.every((lesson) => completedLessonIds.has(lesson.id));
+}
+
+export function findContinueLesson(days: OrderedDay[], completedLessonIds: Set<string>) {
+  for (const day of days) {
+    for (const lesson of day.lessons) {
+      if (!completedLessonIds.has(lesson.id)) {
+        return {
+          daySlug: day.slug,
+          dayTitle: day.title,
+          lessonId: lesson.id,
+          lessonTitle: lesson.title,
+        };
+      }
+    }
+  }
+
+  return null;
+}
+
+export function getLessonNeighbors(
+  days: OrderedDay[],
+  currentLessonId: string,
+  currentDaySlug: string,
+) {
+  const flat = days.flatMap((day) =>
+    day.lessons.map((lesson) => ({
+      daySlug: day.slug,
+      dayTitle: day.title,
+      lessonId: lesson.id,
+      lessonTitle: lesson.title,
+    })),
+  );
+
+  const index = flat.findIndex(
+    (item) => item.lessonId === currentLessonId && item.daySlug === currentDaySlug,
+  );
+
+  if (index === -1) return { previous: null, next: null };
+
+  return {
+    previous: index > 0 ? flat[index - 1] : null,
+    next: index < flat.length - 1 ? flat[index + 1] : null,
+  };
+}
+
+export function flattenLessons(days: OrderedDay[]) {
+  return days.flatMap((day) =>
+    day.lessons.map((lesson) => ({
+      daySlug: day.slug,
+      dayTitle: day.title,
+      lessonId: lesson.id,
+      lessonTitle: lesson.title,
+    })),
+  );
+}

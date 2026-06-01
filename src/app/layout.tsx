@@ -12,8 +12,14 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"),
   title: "Mamy mimo davu · Video program",
   description: "Online video program s lekciami, pracovnými zošitmi a sledovaním postupu.",
+  openGraph: {
+    title: "Mamy mimo davu · Video program",
+    description: "Online video program s lekciami, pracovnými zošitmi a sledovaním postupu.",
+    type: "website",
+  },
   icons: {
     icon: "/logo-mamy-mimo-davu.png",
     apple: "/logo-mamy-mimo-davu.png",

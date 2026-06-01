@@ -1,8 +1,11 @@
 import { AdminDayEdit } from "@/components/AdminDayEdit";
 import { AdminDayForm } from "@/components/AdminDayForm";
 import { AdminGrantEnrollment } from "@/components/AdminGrantEnrollment";
+import { AdminPreviewLink } from "@/components/AdminPreviewLink";
 import { AdminProgramSettings } from "@/components/AdminProgramSettings";
+import { AdminSetupNotes } from "@/components/AdminSetupNotes";
 import { LessonThumbnail } from "@/components/LessonThumbnail";
+import { ReorderButtons } from "@/components/ReorderButtons";
 import { VideoCountBadge } from "@/components/VideoStatusBadge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { prisma } from "@/lib/db";
@@ -73,6 +76,7 @@ export default async function AdminPage() {
       </div>
 
       <AdminProgramSettings program={program} />
+      <AdminSetupNotes />
 
       {!program.published ? (
         <Card className="border-amber-200 bg-amber-50">
@@ -105,9 +109,15 @@ export default async function AdminPage() {
               return (
                 <Card key={day.id} className="overflow-hidden">
                   <CardHeader>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <CardTitle>Deň {day.order}</CardTitle>
-                      <VideoCountBadge ready={videosReady} total={day.lessons.length} />
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <CardTitle>Deň {day.order}</CardTitle>
+                        <VideoCountBadge ready={videosReady} total={day.lessons.length} />
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <ReorderButtons entity="day" id={day.id} />
+                        <AdminPreviewLink daySlug={day.slug} />
+                      </div>
                     </div>
                     <CardDescription>{day.title}</CardDescription>
                   </CardHeader>

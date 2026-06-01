@@ -1,10 +1,18 @@
 import { NextResponse } from "next/server";
-import { getEnrollmentContext } from "@/lib/auth";
+import { isAdminEmail } from "@/lib/admin";
+import { getCurrentUser, getEnrollmentContext } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { enforceRateLimit } from "@/lib/rate-limit";
 
 export async function GET(request: Request) {
+  const limited = enforceRateLimit(request, "blob-download", 120, 60_000);
+  if (limited) return limited;
+
   const context = await getEnrollmentContext();
-  if (!context) {
+  const user = await getCurrentUser();
+  const isAdmin = isAdminEmail(user?.email);
+
+  if (!context && !isAdmin) {
     return NextResponse.json({ error: "Nemáte prístup k programu" }, { status: 401 });
   }
 

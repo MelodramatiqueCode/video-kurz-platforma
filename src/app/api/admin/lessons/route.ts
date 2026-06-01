@@ -3,7 +3,8 @@ import { Prisma } from "@prisma/client";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-import { getMux, resolvePlaybackId } from "@/lib/mux";
+import { deleteMuxAsset, getMux, resolvePlaybackId } from "@/lib/mux";
+import { enforceRateLimit } from "@/lib/rate-limit";
 
 const createLessonSchema = z.object({
   dayId: z.string(),
@@ -29,6 +30,9 @@ const deleteLessonSchema = z.object({
 });
 
 export async function POST(request: Request) {
+  const limited = enforceRateLimit(request, "admin-lessons", 60, 60_000);
+  if (limited) return limited;
+
   await requireAdmin();
   const body = createLessonSchema.parse(await request.json());
 
@@ -73,8 +77,16 @@ export async function PUT(request: Request) {
 }
 
 export async function PATCH(request: Request) {
+  const limited = enforceRateLimit(request, "admin-lessons", 60, 60_000);
+  if (limited) return limited;
+
   await requireAdmin();
   const body = updateLessonSchema.parse(await request.json());
+
+  const existingLesson = await prisma.lesson.findUnique({
+    where: { id: body.lessonId },
+    select: { muxAssetId: true },
+  });
 
   const mux = getMux();
   const upload = await mux.video.uploads.retrieve(body.muxUploadId);
@@ -85,6 +97,10 @@ export async function PATCH(request: Request) {
   }
 
   const playbackId = await resolvePlaybackId(assetId);
+
+  if (existingLesson?.muxAssetId && existingLesson.muxAssetId !== assetId) {
+    await deleteMuxAsset(existingLesson.muxAssetId);
+  }
 
   const lesson = await prisma.lesson.update({
     where: { id: body.lessonId },
@@ -111,12 +127,7 @@ export async function DELETE(request: Request) {
   }
 
   if (lesson.muxAssetId) {
-    try {
-      const mux = getMux();
-      await mux.video.assets.delete(lesson.muxAssetId);
-    } catch {
-      // Video v Muxe môže byť už zmazané — pokračujeme.
-    }
+    await deleteMuxAsset(lesson.muxAssetId);
   }
 
   if (lesson.attachments.length > 0) {

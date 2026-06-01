@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { ensureUserRecord } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-import { getStripe } from "@/lib/stripe";
+import { sendPurchaseConfirmationEmail } from "@/lib/email";
+import { getAppUrl, getStripe } from "@/lib/stripe";
 
 export const runtime = "nodejs";
 
@@ -56,6 +57,15 @@ export async function POST(request: Request) {
           stripeSessionId: session.id,
         },
       });
+
+      const program = await prisma.program.findUnique({ where: { id: programId } });
+      if (program) {
+        await sendPurchaseConfirmationEmail({
+          to: email,
+          programTitle: program.title,
+          programUrl: `${getAppUrl()}/program`,
+        });
+      }
     }
   }
 

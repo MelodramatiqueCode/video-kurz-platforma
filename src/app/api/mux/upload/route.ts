@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth";
 import { createDirectUpload } from "@/lib/mux";
+import { enforceRateLimit } from "@/lib/rate-limit";
 
 function formatMuxError(error: unknown) {
   const message = error instanceof Error ? error.message : "Mux upload failed";
@@ -13,6 +14,9 @@ function formatMuxError(error: unknown) {
 }
 
 export async function POST(request: Request) {
+  const limited = enforceRateLimit(request, "mux-upload", 20, 60_000);
+  if (limited) return limited;
+
   await requireAdmin();
 
   try {

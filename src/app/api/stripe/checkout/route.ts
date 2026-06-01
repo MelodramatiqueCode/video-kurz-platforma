@@ -44,6 +44,7 @@ export async function POST(request: Request) {
     success_url: `${appUrl}/program?success=1`,
     cancel_url: `${appUrl}/?canceled=1`,
     customer_email: user.email,
+    allow_promotion_codes: true,
     metadata: {
       programId: program.id,
       userId: user.id,

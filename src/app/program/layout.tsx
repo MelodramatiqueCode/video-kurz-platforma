@@ -1,8 +1,15 @@
-import { requireEnrollment } from "@/lib/auth";
+import { AdminPreviewBanner } from "@/components/AdminPreviewBanner";
+import { requireProgramAccess } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
 export default async function ProgramLayout({ children }: { children: React.ReactNode }) {
-  await requireEnrollment();
-  return <div className="mx-auto max-w-6xl px-4 py-10">{children}</div>;
+  const { isAdminPreview } = await requireProgramAccess();
+
+  return (
+    <div className="mx-auto max-w-6xl space-y-4 px-4 py-10">
+      {isAdminPreview ? <AdminPreviewBanner /> : null}
+      {children}
+    </div>
+  );
 }

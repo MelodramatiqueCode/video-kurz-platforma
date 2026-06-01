@@ -4,11 +4,15 @@ import { AdminAttachmentUpload } from "@/components/AdminAttachmentUpload";
 import { AdminDayEdit } from "@/components/AdminDayEdit";
 import { AdminLessonEdit } from "@/components/AdminLessonEdit";
 import { AdminLessonForm } from "@/components/AdminLessonForm";
+import { AdminPreviewLink } from "@/components/AdminPreviewLink";
 import { AdminVideoUpload } from "@/components/AdminVideoUpload";
 import { LessonThumbnail } from "@/components/LessonThumbnail";
+import { MuxVideoStatusBadge } from "@/components/MuxVideoStatusBadge";
+import { ReorderButtons } from "@/components/ReorderButtons";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { prisma } from "@/lib/db";
+import { getMuxAssetStatus } from "@/lib/mux";
 import { enrichLessonsWithThumbnails } from "@/lib/program";
 
 export const dynamic = "force-dynamic";
@@ -33,24 +37,28 @@ export default async function AdminDayPage({
 
   if (!day) notFound();
 
-  const lessonsWithThumbnails = await enrichLessonsWithThumbnails(day.lessons);
+  const lessonsWithThumbnails = await Promise.all(
+    (await enrichLessonsWithThumbnails(day.lessons)).map(async (lesson) => ({
+      ...lesson,
+      muxStatus: await getMuxAssetStatus(lesson.muxAssetId),
+    })),
+  );
   const nextOrder = day.lessons.length + 1;
 
   return (
     <div className="space-y-8">
       <div className="space-y-2">
-        <Link href="/admin" className="text-sm text-zinc-600 underline">
+        <Link href="/admin" className="text-sm text-muted-foreground underline">
           Späť na admin
         </Link>
-        <h1 className="text-3xl font-semibold">{day.title}</h1>
-        <p className="text-zinc-600">{day.description ?? day.program.title}</p>
+        <div className="flex flex-wrap items-center gap-3">
+          <h1 className="text-3xl font-semibold">{day.title}</h1>
+          <AdminPreviewLink daySlug={day.slug} />
+        </div>
+        <p className="text-muted-foreground">{day.description ?? day.program.title}</p>
       </div>
 
-      <AdminDayEdit
-        day={day}
-        lessonCount={day.lessons.length}
-        showManageLink={false}
-      />
+      <AdminDayEdit day={day} lessonCount={day.lessons.length} showManageLink={false} />
 
       <AdminLessonForm dayId={day.id} nextOrder={nextOrder} />
 
@@ -58,8 +66,17 @@ export default async function AdminDayPage({
         {lessonsWithThumbnails.map((lesson) => (
           <Card key={lesson.id}>
             <CardHeader>
-              <CardTitle>Lekcia {lesson.order}</CardTitle>
-              <CardDescription>Upravte názov, popis a poradie lekcie.</CardDescription>
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <CardTitle>Lekcia {lesson.order}</CardTitle>
+                  <CardDescription>Upravte názov, popis a poradie lekcie.</CardDescription>
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <MuxVideoStatusBadge status={lesson.muxStatus} />
+                  <ReorderButtons entity="lesson" id={lesson.id} />
+                  <AdminPreviewLink daySlug={day.slug} lessonId={lesson.id} />
+                </div>
+              </div>
             </CardHeader>
             <CardContent className="space-y-4">
               {lesson.thumbnailUrl ? (
@@ -79,7 +96,7 @@ export default async function AdminDayPage({
               {lesson.attachments.length > 0 ? (
                 <ul className="space-y-2 text-sm">
                   {lesson.attachments.map((attachment) => (
-                    <li key={attachment.id} className="rounded-lg border border-zinc-200 px-3 py-2">
+                    <li key={attachment.id} className="rounded-lg border border-border px-3 py-2">
                       {attachment.filename} · {attachment.type}
                     </li>
                   ))}
