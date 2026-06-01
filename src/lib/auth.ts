@@ -1,3 +1,4 @@
+import { isAdminEmail } from "@/lib/admin";
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/db";
 import { redirect } from "next/navigation";
@@ -26,12 +27,8 @@ export async function ensureUserRecord(userId: string, email: string) {
 
 export async function requireAdmin() {
   const user = await requireUser("/prihlasenie?next=/admin");
-  const adminEmails = (process.env.ADMIN_EMAILS ?? "")
-    .split(",")
-    .map((email) => email.trim().toLowerCase())
-    .filter(Boolean);
 
-  if (!adminEmails.includes((user.email ?? "").toLowerCase())) {
+  if (!isAdminEmail(user.email)) {
     redirect("/");
   }
 

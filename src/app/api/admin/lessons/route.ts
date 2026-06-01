@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/db";
@@ -16,6 +17,13 @@ const updateLessonSchema = z.object({
   muxUploadId: z.string(),
 });
 
+const editLessonSchema = z.object({
+  lessonId: z.string(),
+  title: z.string().min(1),
+  description: z.string().optional(),
+  order: z.number().int().positive(),
+});
+
 export async function POST(request: Request) {
   await requireAdmin();
   const body = createLessonSchema.parse(await request.json());
@@ -30,6 +38,34 @@ export async function POST(request: Request) {
   });
 
   return NextResponse.json(lesson);
+}
+
+export async function PUT(request: Request) {
+  await requireAdmin();
+
+  try {
+    const body = editLessonSchema.parse(await request.json());
+
+    const lesson = await prisma.lesson.update({
+      where: { id: body.lessonId },
+      data: {
+        title: body.title,
+        description: body.description || null,
+        order: body.order,
+      },
+    });
+
+    return NextResponse.json(lesson);
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+      return NextResponse.json(
+        { error: "Poradie je už obsadené inou lekciou v tomto dni." },
+        { status: 409 },
+      );
+    }
+
+    throw error;
+  }
 }
 
 export async function PATCH(request: Request) {

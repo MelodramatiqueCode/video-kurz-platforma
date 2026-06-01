@@ -10,16 +10,11 @@ export const metadata: Metadata = {
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const user = await getCurrentUser();
-  const adminEmails = (process.env.ADMIN_EMAILS ?? "")
-    .split(",")
-    .map((email) => email.trim().toLowerCase())
-    .filter(Boolean);
-  const isAdmin = adminEmails.includes((user?.email ?? "").toLowerCase());
 
   return (
     <html lang="sk">
       <body className="min-h-screen bg-zinc-50 text-zinc-950 antialiased">
-        <AppHeader email={user?.email} isAdmin={isAdmin} />
+        <AppHeader email={user?.email} />
         <main>{children}</main>
       </body>
     </html>

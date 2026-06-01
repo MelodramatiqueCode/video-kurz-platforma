@@ -5,11 +5,14 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  schemas  = ["video_kurz"]
 }
 
 enum AttachmentType {
   ATTACHMENT
   WORKBOOK
+
+  @@schema("video_kurz")
 }
 
 model User {
@@ -18,6 +21,8 @@ model User {
   createdAt      DateTime         @default(now())
   enrollments    Enrollment[]
   lessonProgress LessonProgress[]
+
+  @@schema("video_kurz")
 }
 
 model Program {
@@ -33,6 +38,8 @@ model Program {
   updatedAt     DateTime     @updatedAt
   days          Day[]
   enrollments   Enrollment[]
+
+  @@schema("video_kurz")
 }
 
 model Day {
@@ -50,6 +57,7 @@ model Day {
   @@unique([programId, slug])
   @@unique([programId, order])
   @@index([programId, order])
+  @@schema("video_kurz")
 }
 
 model Lesson {
@@ -68,6 +76,7 @@ model Lesson {
 
   @@unique([dayId, order])
   @@index([dayId, order])
+  @@schema("video_kurz")
 }
 
 model Attachment {
@@ -81,6 +90,7 @@ model Attachment {
   createdAt    DateTime       @default(now())
 
   @@index([lessonId])
+  @@schema("video_kurz")
 }
 
 model Enrollment {
@@ -96,6 +106,7 @@ model Enrollment {
   @@unique([userId, programId])
   @@index([userId])
   @@index([programId])
+  @@schema("video_kurz")
 }
 
 model LessonProgress {
@@ -109,4 +120,5 @@ model LessonProgress {
   @@unique([userId, lessonId])
   @@index([userId])
   @@index([lessonId])
+  @@schema("video_kurz")
 }

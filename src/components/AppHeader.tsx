@@ -1,7 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 
 type DayNavItem = {
@@ -11,12 +14,29 @@ type DayNavItem = {
   progress: number;
 };
 
+function SignOutButton() {
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+
+  async function handleSignOut() {
+    setLoading(true);
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push("/");
+    router.refresh();
+  }
+
+  return (
+    <Button variant="outline" size="sm" onClick={handleSignOut} disabled={loading}>
+      {loading ? "Odhlasujem..." : "Odhlásiť sa"}
+    </Button>
+  );
+}
+
 export function AppHeader({
   email,
-  isAdmin,
 }: {
   email?: string | null;
-  isAdmin?: boolean;
 }) {
   const pathname = usePathname();
 
@@ -33,16 +53,20 @@ export function AppHeader({
           >
             Program
           </Link>
-          {isAdmin ? (
-            <Link
-              href="/admin"
-              className={cn(pathname.startsWith("/admin") ? "font-semibold" : "text-zinc-600")}
-            >
-              Admin
-            </Link>
-          ) : null}
+          <Link
+            href="/admin"
+            className={cn(pathname.startsWith("/admin") ? "font-semibold" : "text-zinc-600")}
+          >
+            Admin
+          </Link>
           {email ? (
-            <span className="hidden text-zinc-500 sm:inline">{email}</span>
+            <>
+              <Link href="/profil" className="hidden text-zinc-600 sm:inline">
+                Účet
+              </Link>
+              <span className="hidden max-w-[180px] truncate text-zinc-500 sm:inline">{email}</span>
+              <SignOutButton />
+            </>
           ) : (
             <Link href="/prihlasenie" className="text-zinc-600">
               Prihlásenie

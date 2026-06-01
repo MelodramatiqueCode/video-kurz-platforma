@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AdminAttachmentUpload } from "@/components/AdminAttachmentUpload";
+import { AdminLessonEdit } from "@/components/AdminLessonEdit";
 import { AdminLessonForm } from "@/components/AdminLessonForm";
 import { AdminVideoUpload } from "@/components/AdminVideoUpload";
 import { Badge } from "@/components/ui/badge";
@@ -47,10 +48,11 @@ export default async function AdminDayPage({
         {day.lessons.map((lesson) => (
           <Card key={lesson.id}>
             <CardHeader>
-              <CardTitle>{lesson.title}</CardTitle>
-              <CardDescription>{lesson.description ?? `Lekcia ${lesson.order}`}</CardDescription>
+              <CardTitle>Lekcia {lesson.order}</CardTitle>
+              <CardDescription>Upravte názov, popis a poradie lekcie.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              <AdminLessonEdit lesson={lesson} />
               <div className="flex flex-wrap gap-2">
                 {lesson.muxPlaybackId ? (
                   <Badge>Video pripravené</Badge>
