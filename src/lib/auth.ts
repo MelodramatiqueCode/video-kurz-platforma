@@ -1,6 +1,7 @@
 import { isAdminEmail } from "@/lib/admin";
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/db";
+import { normalizeProgramDays } from "@/lib/program";
 import { redirect } from "next/navigation";
 
 export async function getCurrentUser() {
@@ -70,7 +71,7 @@ export async function getEnrollmentContext() {
 
   if (!enrollment) return null;
 
-  return { user, program, enrollment };
+  return { user, program: normalizeProgramDays(program), enrollment };
 }
 
 export async function requireEnrollment(programSlug?: string) {
@@ -110,7 +111,7 @@ export async function requireEnrollment(programSlug?: string) {
 
   if (!enrollment) redirect("/?needsPurchase=1");
 
-  return { user, program, enrollment };
+  return { user, program: normalizeProgramDays(program), enrollment };
 }
 
 export async function requireProgramAccess(programSlug?: string) {
@@ -154,7 +155,7 @@ export async function requireProgramAccess(programSlug?: string) {
 
   return {
     user,
-    program,
+    program: normalizeProgramDays(program),
     enrollment,
     isAdminPreview: isAdmin && !enrollment,
   };

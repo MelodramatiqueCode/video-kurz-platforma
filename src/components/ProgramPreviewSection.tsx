@@ -7,7 +7,11 @@ import {
   LANDING_VIDEO_PREVIEW_DURATION_SECONDS,
   LANDING_VIDEO_PREVIEW_START_SECONDS,
 } from "@/lib/preview";
-import { lessonHasVideo } from "@/lib/program";
+import {
+  findProgramDayByNumber,
+  lessonHasVideo,
+  sortProgramDaysByTitleNumber,
+} from "@/lib/program";
 
 type PreviewProgram = {
   title: string;
@@ -16,6 +20,7 @@ type PreviewProgram = {
     title: string;
     slug: string;
     description: string | null;
+    order: number;
     lessons: {
       id: string;
       title: string;
@@ -26,9 +31,11 @@ type PreviewProgram = {
 };
 
 export async function ProgramPreviewSection({ program }: { program: PreviewProgram }) {
-  const previewDaySources = [program.days[0], program.days[18]].filter(
-    (day): day is (typeof program.days)[number] => Boolean(day),
-  );
+  const sortedDays = sortProgramDaysByTitleNumber(program.days);
+  const previewDaySources = [
+    findProgramDayByNumber(sortedDays, 1) ?? sortedDays[0],
+    findProgramDayByNumber(sortedDays, 19) ?? sortedDays[18],
+  ].filter((day): day is (typeof sortedDays)[number] => Boolean(day));
 
   const previewDays = await Promise.all(
     previewDaySources.map(async (day) => {
