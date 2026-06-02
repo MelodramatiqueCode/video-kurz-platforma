@@ -1,6 +1,7 @@
 import { isAdminEmail } from "@/lib/admin";
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/db";
+import { normalizeProgramDays } from "@/lib/program";
 import { redirect } from "next/navigation";
 
 export async function getCurrentUser() {
@@ -23,6 +24,31 @@ export async function ensureUserRecord(userId: string, email: string) {
     update: { email },
     create: { id: userId, email },
   });
+}
+
+export async function resolveUserByEmail(email: string) {
+  const normalizedEmail = email.trim().toLowerCase();
+
+  const existing = await prisma.user.findFirst({
+    where: { email: { equals: normalizedEmail, mode: "insensitive" } },
+  });
+  if (existing) {
+    return existing;
+  }
+
+  const rows = await prisma.$queryRaw<{ id: string; email: string }[]>`
+    SELECT id::text AS id, email
+    FROM auth.users
+    WHERE lower(email) = ${normalizedEmail}
+    LIMIT 1
+  `;
+
+  const authUser = rows[0];
+  if (!authUser?.email) {
+    return null;
+  }
+
+  return ensureUserRecord(authUser.id, authUser.email);
 }
 
 export async function requireAdmin() {
@@ -70,7 +96,7 @@ export async function getEnrollmentContext() {
 
   if (!enrollment) return null;
 
-  return { user, program, enrollment };
+  return { user, program: normalizeProgramDays(program), enrollment };
 }
 
 export async function requireEnrollment(programSlug?: string) {
@@ -110,7 +136,7 @@ export async function requireEnrollment(programSlug?: string) {
 
   if (!enrollment) redirect("/?needsPurchase=1");
 
-  return { user, program, enrollment };
+  return { user, program: normalizeProgramDays(program), enrollment };
 }
 
 export async function requireProgramAccess(programSlug?: string) {
@@ -154,7 +180,7 @@ export async function requireProgramAccess(programSlug?: string) {
 
   return {
     user,
-    program,
+    program: normalizeProgramDays(program),
     enrollment,
     isAdminPreview: isAdmin && !enrollment,
   };

@@ -2,38 +2,36 @@ import Link from "next/link";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-type LessonRef = {
-  daySlug: string;
-  dayTitle: string;
-  lessonId: string;
-  lessonTitle: string;
+type DayRef = {
+  slug: string;
+  title: string;
 };
 
 export function LessonNavigation({
-  previous,
-  next,
+  previousDay,
+  nextDay,
 }: {
-  previous: LessonRef | null;
-  next: LessonRef | null;
+  previousDay: DayRef | null;
+  nextDay: DayRef | null;
 }) {
-  if (!previous && !next) return null;
+  if (!previousDay && !nextDay) return null;
 
   return (
     <div className="flex flex-col gap-3 border-t border-border pt-4 sm:flex-row sm:justify-between">
-      {previous ? (
-        <Button asChild variant="outline" className="justify-start">
-          <Link href={`/program/den/${previous.daySlug}#lesson-${previous.lessonId}`}>
+      {previousDay ? (
+        <Button asChild variant="outline" className="w-full justify-start sm:w-auto">
+          <Link href={`/program/den/${previousDay.slug}`}>
             <ArrowLeft className="h-4 w-4" />
-            <span className="truncate">{previous.lessonTitle}</span>
+            <span className="truncate">Späť: {previousDay.title}</span>
           </Link>
         </Button>
       ) : (
         <div />
       )}
-      {next ? (
-        <Button asChild className="justify-end sm:ml-auto">
-          <Link href={`/program/den/${next.daySlug}#lesson-${next.lessonId}`}>
-            <span className="truncate">{next.lessonTitle}</span>
+      {nextDay ? (
+        <Button asChild className="w-full justify-end sm:ml-auto sm:w-auto">
+          <Link href={`/program/den/${nextDay.slug}`}>
+            <span className="truncate">Ďalej: {nextDay.title}</span>
             <ArrowRight className="h-4 w-4" />
           </Link>
         </Button>

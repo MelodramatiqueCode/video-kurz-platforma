@@ -1,8 +1,36 @@
 import { prisma } from "@/lib/db";
 import { resolveLessonThumbnail } from "@/lib/mux";
 
+export function getDayNumberFromTitle(title: string) {
+  const match = title.match(/^(\d+)\.\s*deň/i);
+  return match ? Number(match[1]) : null;
+}
+
+export function sortProgramDaysByTitleNumber<T extends { title: string; order: number }>(days: T[]) {
+  return [...days].sort((a, b) => {
+    const aNum = getDayNumberFromTitle(a.title);
+    const bNum = getDayNumberFromTitle(b.title);
+
+    if (aNum !== null && bNum !== null) return aNum - bNum;
+    if (aNum !== null) return -1;
+    if (bNum !== null) return 1;
+    return a.order - b.order;
+  });
+}
+
+export function findProgramDayByNumber<T extends { title: string }>(days: T[], dayNumber: number) {
+  return days.find((day) => getDayNumberFromTitle(day.title) === dayNumber);
+}
+
+export function normalizeProgramDays<T extends { days: Array<{ title: string; order: number }> }>(program: T): T {
+  return {
+    ...program,
+    days: sortProgramDaysByTitleNumber(program.days),
+  };
+}
+
 export async function getPublishedProgram() {
-  return prisma.program.findFirst({
+  const program = await prisma.program.findFirst({
     where: { published: true },
     orderBy: { createdAt: "asc" },
     include: {
@@ -17,10 +45,12 @@ export async function getPublishedProgram() {
       },
     },
   });
+
+  return program ? normalizeProgramDays(program) : null;
 }
 
 export async function getProgramBySlug(slug: string) {
-  return prisma.program.findUnique({
+  const program = await prisma.program.findUnique({
     where: { slug },
     include: {
       days: {
@@ -34,6 +64,8 @@ export async function getProgramBySlug(slug: string) {
       },
     },
   });
+
+  return program ? normalizeProgramDays(program) : null;
 }
 
 export async function getDayBySlug(programId: string, daySlug: string) {
@@ -156,6 +188,19 @@ export function findContinueLesson(days: OrderedDay[], completedLessonIds: Set<s
   }
 
   return null;
+}
+
+export function getDayNeighbors(days: OrderedDay[], currentDaySlug: string) {
+  const index = days.findIndex((day) => day.slug === currentDaySlug);
+
+  if (index === -1) {
+    return { previousDay: null, nextDay: null };
+  }
+
+  return {
+    previousDay: index > 0 ? days[index - 1] : null,
+    nextDay: index < days.length - 1 ? days[index + 1] : null,
+  };
 }
 
 export function getLessonNeighbors(

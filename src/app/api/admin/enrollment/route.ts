@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { ensureUserRecord, requireAdmin } from "@/lib/auth";
+import { requireAdmin, resolveUserByEmail } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 
 const grantSchema = z.object({
@@ -12,15 +12,16 @@ export async function POST(request: Request) {
   await requireAdmin();
   const body = grantSchema.parse(await request.json());
 
-  const user = await prisma.user.findUnique({ where: { email: body.email } });
+  const user = await resolveUserByEmail(body.email);
   if (!user) {
     return NextResponse.json(
-      { error: "Používateľ s týmto emailom ešte neexistuje. Najprv sa musí registrovať." },
+      {
+        error:
+          "Používateľ s týmto emailom sa nenašiel. Najprv sa musí aspoň raz registrovať alebo prihlásiť na webe.",
+      },
       { status: 404 },
     );
   }
-
-  await ensureUserRecord(user.id, user.email);
 
   const enrollment = await prisma.enrollment.upsert({
     where: {
@@ -29,12 +30,19 @@ export async function POST(request: Request) {
         programId: body.programId,
       },
     },
-    update: {},
+    update: {
+      paidAt: new Date(),
+    },
     create: {
       userId: user.id,
       programId: body.programId,
     },
   });
 
-  return NextResponse.json(enrollment);
+  return NextResponse.json({
+    id: enrollment.id,
+    email: user.email,
+    paidAt: enrollment.paidAt.toISOString(),
+    source: enrollment.stripeSessionId ? "stripe" : "manual",
+  });
 }

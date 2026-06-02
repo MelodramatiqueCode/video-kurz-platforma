@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createClient } from "@/lib/supabase/client";
+import { GoogleOneTap } from "@/components/GoogleOneTap";
 
 export function AuthForm({ nextPath = "/program" }: { nextPath?: string }) {
   const router = useRouter();
@@ -23,7 +24,7 @@ export function AuthForm({ nextPath = "/program" }: { nextPath?: string }) {
     const supabase = createClient();
     const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(nextPath)}`;
 
-    const { error } = await supabase.auth.signInWithOAuth({
+    const { data, error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo },
     });
@@ -31,7 +32,16 @@ export function AuthForm({ nextPath = "/program" }: { nextPath?: string }) {
     if (error) {
       setMessage(error.message);
       setGoogleLoading(false);
+      return;
     }
+
+    if (data.url) {
+      window.location.assign(data.url);
+      return;
+    }
+
+    setMessage("Nepodarilo sa spustiť prihlásenie cez Google. Skúste to znova.");
+    setGoogleLoading(false);
   }
 
   async function handleSubmit(event: React.FormEvent) {
@@ -61,6 +71,7 @@ export function AuthForm({ nextPath = "/program" }: { nextPath?: string }) {
 
   return (
     <div className="space-y-4">
+      <GoogleOneTap nextPath={nextPath} disabled={loading || googleLoading} />
       <Button
         type="button"
         variant="outline"

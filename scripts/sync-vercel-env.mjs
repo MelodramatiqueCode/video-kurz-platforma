@@ -43,6 +43,7 @@ function readOptionalEnv(key) {
 
 for (const optional of [
   "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+  "NEXT_PUBLIC_GOOGLE_CLIENT_ID",
   "STRIPE_SECRET_KEY",
   "STRIPE_WEBHOOK_SECRET",
   "RESEND_API_KEY",

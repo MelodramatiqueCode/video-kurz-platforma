@@ -1,9 +1,9 @@
 import { AdminDayEdit } from "@/components/AdminDayEdit";
 import { AdminDayForm } from "@/components/AdminDayForm";
-import { AdminGrantEnrollment } from "@/components/AdminGrantEnrollment";
 import { AdminPreviewLink } from "@/components/AdminPreviewLink";
 import { AdminProgramSettings } from "@/components/AdminProgramSettings";
 import { AdminSetupNotes } from "@/components/AdminSetupNotes";
+import { AdminStudentsSection } from "@/components/AdminStudentsSection";
 import { LessonThumbnail } from "@/components/LessonThumbnail";
 import { ReorderButtons } from "@/components/ReorderButtons";
 import { VideoCountBadge } from "@/components/VideoStatusBadge";
@@ -67,6 +67,17 @@ export default async function AdminPage() {
 
   const daysWithThumbnails = await enrichProgramDaysWithThumbnails(program.days);
   const nextOrder = program.days.length + 1;
+  const enrollments = await prisma.enrollment.findMany({
+    where: { programId: program.id },
+    include: { user: true },
+    orderBy: { paidAt: "desc" },
+  });
+  const enrollmentRows = enrollments.map((enrollment) => ({
+    id: enrollment.id,
+    email: enrollment.user.email,
+    paidAt: enrollment.paidAt.toISOString(),
+    source: enrollment.stripeSessionId ? ("stripe" as const) : ("manual" as const),
+  }));
 
   return (
     <div className="space-y-8">
@@ -90,7 +101,7 @@ export default async function AdminPage() {
         </Card>
       ) : null}
 
-      <AdminGrantEnrollment programId={program.id} />
+      <AdminStudentsSection programId={program.id} enrollments={enrollmentRows} />
 
       <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
         <section className="space-y-4">

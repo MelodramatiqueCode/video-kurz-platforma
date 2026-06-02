@@ -54,12 +54,20 @@ export async function createSignedThumbnailToken(playbackId: string) {
   }
 }
 
-export function buildThumbnailUrl(playbackId: string, token?: string | null) {
+export function buildThumbnailUrl(
+  playbackId: string,
+  token?: string | null,
+  timeSeconds?: number,
+) {
   const params = new URLSearchParams({
     width: "320",
     height: "180",
     fit_mode: "smartcrop",
   });
+
+  if (timeSeconds !== undefined) {
+    params.set("time", String(timeSeconds));
+  }
 
   if (token) {
     params.set("token", token);
@@ -69,22 +77,26 @@ export function buildThumbnailUrl(playbackId: string, token?: string | null) {
 }
 
 export async function resolvePlaybackId(assetId: string) {
-  const mux = getMux();
-  const asset = await mux.video.assets.retrieve(assetId);
+  try {
+    const mux = getMux();
+    const asset = await mux.video.assets.retrieve(assetId);
 
-  if (hasMuxSigningKeys()) {
-    const signedPlayback = asset.playback_ids?.find((playback) => playback.policy === "signed");
-    if (signedPlayback?.id) return signedPlayback.id;
+    if (hasMuxSigningKeys()) {
+      const signedPlayback = asset.playback_ids?.find((playback) => playback.policy === "signed");
+      if (signedPlayback?.id) return signedPlayback.id;
 
-    const created = await mux.video.assets.createPlaybackId(assetId, { policy: "signed" });
+      const created = await mux.video.assets.createPlaybackId(assetId, { policy: "signed" });
+      return created.id;
+    }
+
+    const existingPublic = asset.playback_ids?.find((playback) => playback.policy === "public");
+    if (existingPublic?.id) return existingPublic.id;
+
+    const created = await mux.video.assets.createPlaybackId(assetId, { policy: "public" });
     return created.id;
+  } catch {
+    return null;
   }
-
-  const existingPublic = asset.playback_ids?.find((playback) => playback.policy === "public");
-  if (existingPublic?.id) return existingPublic.id;
-
-  const created = await mux.video.assets.createPlaybackId(assetId, { policy: "public" });
-  return created.id;
 }
 
 export async function resolveLessonPlayback(lesson: {
@@ -117,23 +129,52 @@ export async function resolveLessonMedia(lesson: {
   muxAssetId: string | null;
   muxPlaybackId: string | null;
 }) {
-  const playback = await resolveLessonPlayback(lesson);
-  if (!playback?.playbackId) {
+  try {
+    const playback = await resolveLessonPlayback(lesson);
+    if (!playback?.playbackId) {
+      return {
+        playbackId: null,
+        playbackToken: null,
+        thumbnailUrl: null,
+      };
+    }
+
+    const thumbnailToken = hasMuxSigningKeys()
+      ? await createSignedThumbnailToken(playback.playbackId)
+      : null;
+
+    return {
+      playbackId: playback.playbackId,
+      playbackToken: playback.playbackToken,
+      thumbnailUrl: buildThumbnailUrl(playback.playbackId, thumbnailToken),
+    };
+  } catch {
     return {
       playbackId: null,
       playbackToken: null,
       thumbnailUrl: null,
     };
   }
+}
+
+export async function resolveLessonPreviewMedia(
+  lesson: {
+    muxAssetId: string | null;
+    muxPlaybackId: string | null;
+  },
+  startSeconds: number,
+) {
+  const media = await resolveLessonMedia(lesson);
+  if (!media.playbackId) return media;
 
   const thumbnailToken = hasMuxSigningKeys()
-    ? await createSignedThumbnailToken(playback.playbackId)
+    ? await createSignedThumbnailToken(media.playbackId)
     : null;
 
   return {
-    playbackId: playback.playbackId,
-    playbackToken: playback.playbackToken,
-    thumbnailUrl: buildThumbnailUrl(playback.playbackId, thumbnailToken),
+    ...media,
+    thumbnailUrl: buildThumbnailUrl(media.playbackId, thumbnailToken, startSeconds),
+    startSeconds,
   };
 }
 
