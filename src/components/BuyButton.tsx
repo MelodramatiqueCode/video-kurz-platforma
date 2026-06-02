@@ -3,7 +3,15 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 
-export function BuyButton({ programSlug }: { programSlug: string }) {
+import { cn } from "@/lib/utils";
+
+export function BuyButton({
+  programSlug,
+  className,
+}: {
+  programSlug: string;
+  className?: string;
+}) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -36,8 +44,8 @@ export function BuyButton({ programSlug }: { programSlug: string }) {
   }
 
   return (
-    <div className="space-y-2">
-      <Button size="lg" onClick={handleBuy} disabled={loading}>
+    <div className={cn("space-y-2", className)}>
+      <Button size="lg" className="w-full sm:w-auto" onClick={handleBuy} disabled={loading}>
         {loading ? "Presmerovávam..." : "Kúpiť prístup"}
       </Button>
       {error ? <p className="text-sm text-red-600">{error}</p> : null}

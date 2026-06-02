@@ -42,6 +42,16 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY="eyJ..." node scripts/sync-vercel-env.mjs
    - Callback pre Google: `https://video-kurz-platforma.vercel.app/auth/callback`
 
 5. V Supabase → Authentication → Providers zapnite **Google** a uložte Client ID/Secret z Google Cloud Console.
+6. V Google Cloud Console (OAuth klient typ Web) pridajte:
+   - **Authorized JavaScript origins:** `https://video-kurz-platforma.vercel.app`, `http://localhost:3000`
+   - **Authorized redirect URIs:** len Supabase callback z Providers → Google:
+     `https://rdulzfcijhjlgxmkmqse.supabase.co/auth/v1/callback`
+     (Google sem posiela odpoveď; `/auth/callback` na Verceli ide cez Supabase, nie priamo do GCP.)
+7. Pre automatické Google One Tap prihlásenie nastavte rovnaké Client ID aj ako env premennú:
+
+```bash
+NEXT_PUBLIC_GOOGLE_CLIENT_ID="123....apps.googleusercontent.com" node scripts/sync-vercel-env.mjs
+```
 
 ### 3. Stripe
 1. Vytvorte Product + Price v [Stripe dashboarde](https://dashboard.stripe.com/test/products)

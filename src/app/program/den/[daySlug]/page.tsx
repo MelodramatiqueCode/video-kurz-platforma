@@ -1,11 +1,10 @@
 import { Check } from "lucide-react";
 import { notFound } from "next/navigation";
-import { AttachmentList } from "@/components/AttachmentList";
+import { DayLessons } from "@/components/DayLessons";
 import { DaySidebar } from "@/components/AppHeader";
+import { MobileDayPicker } from "@/components/MobileDayPicker";
 import { LessonNavigation } from "@/components/LessonNavigation";
-import { LessonProgressToggle } from "@/components/LessonProgressToggle";
 import { LessonThumbnail } from "@/components/LessonThumbnail";
-import { MuxVideoPlayer } from "@/components/MuxVideoPlayer";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { requireProgramAccess } from "@/lib/auth";
 import { prisma } from "@/lib/db";
@@ -69,15 +68,19 @@ export default async function DayPage({
     <div className="grid gap-8 lg:grid-cols-[280px_1fr]">
       <DaySidebar days={dayNav} activeSlug={day.slug} />
 
-      <section className="min-w-0 space-y-8">
+      <section className="min-w-0 space-y-6 sm:space-y-8">
+        <div className="sticky top-[57px] z-30 -mx-4 border-b border-border bg-background/95 px-4 py-3 backdrop-blur-md lg:hidden">
+          <MobileDayPicker days={dayNav} activeSlug={day.slug} />
+        </div>
+
         <div className="space-y-2">
           <p className="text-sm font-medium text-primary">Deň programu</p>
-          <h1 className="text-3xl font-semibold tracking-tight">{day.title}</h1>
+          <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">{day.title}</h1>
           {day.description ? <p className="text-muted-foreground">{day.description}</p> : null}
         </div>
 
         {lessonsWithMedia.length > 0 ? (
-          <Card>
+          <Card className="hidden sm:block">
             <CardHeader>
               <CardTitle>Lekcie v tomto dni</CardTitle>
               <CardDescription>Rýchly prehľad s ukážkami videí</CardDescription>
@@ -103,36 +106,7 @@ export default async function DayPage({
           </Card>
         ) : null}
 
-        {lessonsWithMedia.map((lesson) => (
-          <Card key={lesson.id} id={`lesson-${lesson.id}`} className="scroll-mt-6">
-            <CardHeader>
-              <div className="flex items-start gap-4">
-                <LessonThumbnail src={lesson.thumbnailUrl} title={lesson.title} size="md" />
-                <div className="min-w-0 space-y-1">
-                  <CardTitle>{lesson.title}</CardTitle>
-                  {lesson.description ? <CardDescription>{lesson.description}</CardDescription> : null}
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {lesson.playbackId ? (
-                <MuxVideoPlayer
-                  lessonId={lesson.id}
-                  playbackId={lesson.playbackId}
-                  playbackToken={lesson.playbackToken}
-                  title={lesson.title}
-                />
-              ) : (
-                <div className="rounded-xl border border-dashed border-border px-4 py-10 text-center text-sm text-muted-foreground">
-                  Video pre túto lekciu ešte nie je pripravené.
-                </div>
-              )}
-
-              <AttachmentList attachments={lesson.attachments} />
-              <LessonProgressToggle lessonId={lesson.id} initialCompleted={lesson.completed} />
-            </CardContent>
-          </Card>
-        ))}
+        <DayLessons lessons={lessonsWithMedia} />
 
         <LessonNavigation previousDay={dayNeighbors.previousDay} nextDay={dayNeighbors.nextDay} />
       </section>

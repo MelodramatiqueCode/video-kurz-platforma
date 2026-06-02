@@ -29,12 +29,19 @@ export async function POST(request: Request) {
         programId: body.programId,
       },
     },
-    update: {},
+    update: {
+      paidAt: new Date(),
+    },
     create: {
       userId: user.id,
       programId: body.programId,
     },
   });
 
-  return NextResponse.json(enrollment);
+  return NextResponse.json({
+    id: enrollment.id,
+    email: user.email,
+    paidAt: enrollment.paidAt.toISOString(),
+    source: enrollment.stripeSessionId ? "stripe" : "manual",
+  });
 }

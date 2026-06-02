@@ -16,7 +16,9 @@ export function AdminSetupNotes() {
         </p>
         <p>
           <strong>Google prihlásenie:</strong> v Supabase → Authentication → Providers zapnite Google
-          (Client ID + Secret z Google Cloud Console, nie OAuth Server).
+          (Client ID + Secret z Google Cloud Console). Do Vercel env pridajte rovnaké Client ID ako{" "}
+          <code className="rounded bg-sky-100 px-1">NEXT_PUBLIC_GOOGLE_CLIENT_ID</code> pre automatické
+          One Tap prihlásenie na stránke /prihlasenie.
         </p>
         <p>
           <strong>Email po nákupe:</strong> voliteľne `RESEND_API_KEY` a `RESEND_FROM` vo Vercel env.

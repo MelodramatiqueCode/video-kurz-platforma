@@ -34,7 +34,7 @@ export function BrandLogoLarge({ className }: { className?: string }) {
         width={220}
         height={220}
         priority
-        className="h-28 w-28 object-contain sm:h-36 sm:w-36"
+        className="h-20 w-20 object-contain sm:h-36 sm:w-36"
       />
     </div>
   );

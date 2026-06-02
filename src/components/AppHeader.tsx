@@ -10,15 +10,9 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
+import type { ProgramDayNavItem } from "@/lib/program-nav";
 
-type DayNavItem = {
-  id: string;
-  title: string;
-  slug: string;
-  progress: number;
-  thumbnailUrl?: string | null;
-  completed?: boolean;
-};
+type DayNavItem = ProgramDayNavItem;
 
 function SignOutButton({ compact = false }: { compact?: boolean }) {
   const router = useRouter();
@@ -135,6 +129,9 @@ export function AppHeader({
                 {link.label}
               </NavLink>
             ))}
+            <div className="px-3 py-2">
+              <ThemeToggle />
+            </div>
             {email ? (
               <>
                 <NavLink
@@ -166,11 +163,9 @@ export function AppHeader({
 function DayNavLink({
   day,
   activeSlug,
-  compact = false,
 }: {
   day: DayNavItem;
   activeSlug?: string;
-  compact?: boolean;
 }) {
   const active = activeSlug === day.slug;
 
@@ -178,8 +173,7 @@ function DayNavLink({
     <Link
       href={`/program/den/${day.slug}`}
       className={cn(
-        "block shrink-0 rounded-xl border transition-all",
-        compact ? "w-44 px-3 py-2.5" : "px-4 py-3",
+        "block rounded-xl border px-4 py-3 transition-all",
         active
           ? "border-primary bg-primary text-primary-foreground shadow-sm"
           : "border-border bg-card hover:border-primary/30 hover:shadow-sm",
@@ -211,24 +205,13 @@ export function DaySidebar({
   activeSlug?: string;
 }) {
   return (
-    <>
-      <aside className="hidden space-y-3 lg:block">
-        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Dni programu</p>
-        <div className="space-y-2">
-          {days.map((day) => (
-            <DayNavLink key={day.id} day={day} activeSlug={activeSlug} />
-          ))}
-        </div>
-      </aside>
-
-      <div className="space-y-2 lg:hidden">
-        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Dni programu</p>
-        <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
-          {days.map((day) => (
-            <DayNavLink key={day.id} day={day} activeSlug={activeSlug} compact />
-          ))}
-        </div>
+    <aside className="hidden space-y-3 lg:block">
+      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Dni programu</p>
+      <div className="space-y-2">
+        {days.map((day) => (
+          <DayNavLink key={day.id} day={day} activeSlug={activeSlug} />
+        ))}
       </div>
-    </>
+    </aside>
   );
 }

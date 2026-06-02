@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createClient } from "@/lib/supabase/client";
+import { GoogleOneTap } from "@/components/GoogleOneTap";
 
 export function AuthForm({ nextPath = "/program" }: { nextPath?: string }) {
   const router = useRouter();
@@ -61,6 +62,7 @@ export function AuthForm({ nextPath = "/program" }: { nextPath?: string }) {
 
   return (
     <div className="space-y-4">
+      <GoogleOneTap nextPath={nextPath} disabled={loading || googleLoading} />
       <Button
         type="button"
         variant="outline"

@@ -43,7 +43,7 @@ export async function POST(request: Request) {
       mode: "payment",
       payment_method_types: ["card"],
       line_items: [{ price: program.stripePriceId, quantity: 1 }],
-      success_url: `${appUrl}/program?success=1`,
+      success_url: `${appUrl}/program?success=1&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${appUrl}/?canceled=1`,
       customer_email: user.email,
       allow_promotion_codes: true,

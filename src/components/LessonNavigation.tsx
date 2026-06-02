@@ -19,7 +19,7 @@ export function LessonNavigation({
   return (
     <div className="flex flex-col gap-3 border-t border-border pt-4 sm:flex-row sm:justify-between">
       {previousDay ? (
-        <Button asChild variant="outline" className="justify-start">
+        <Button asChild variant="outline" className="w-full justify-start sm:w-auto">
           <Link href={`/program/den/${previousDay.slug}`}>
             <ArrowLeft className="h-4 w-4" />
             <span className="truncate">Späť: {previousDay.title}</span>
@@ -29,7 +29,7 @@ export function LessonNavigation({
         <div />
       )}
       {nextDay ? (
-        <Button asChild className="justify-end sm:ml-auto">
+        <Button asChild className="w-full justify-end sm:ml-auto sm:w-auto">
           <Link href={`/program/den/${nextDay.slug}`}>
             <span className="truncate">Ďalej: {nextDay.title}</span>
             <ArrowRight className="h-4 w-4" />

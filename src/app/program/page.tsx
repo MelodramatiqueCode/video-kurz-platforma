@@ -2,11 +2,14 @@ import Link from "next/link";
 import { ArrowRight, Check } from "lucide-react";
 import { DaySidebar } from "@/components/AppHeader";
 import { ContinueLearningCard } from "@/components/ContinueLearningCard";
+import { ProgramDaysMobileList } from "@/components/ProgramDaysMobileList";
 import { LessonThumbnail } from "@/components/LessonThumbnail";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { requireProgramAccess } from "@/lib/auth";
+import { getCurrentUser, requireProgramAccess } from "@/lib/auth";
+import { fulfillCheckoutSession } from "@/lib/checkout-fulfillment";
+import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import {
   calculateDayProgress,
@@ -18,7 +21,19 @@ import {
 
 export const dynamic = "force-dynamic";
 
-export default async function ProgramDashboardPage() {
+export default async function ProgramDashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ success?: string; session_id?: string }>;
+}) {
+  const params = await searchParams;
+  const currentUser = await getCurrentUser();
+
+  if (params.session_id && currentUser) {
+    await fulfillCheckoutSession(params.session_id, currentUser.id);
+    redirect("/program?success=1");
+  }
+
   const { user, program } = await requireProgramAccess();
 
   const progressRows = await prisma.lessonProgress.findMany({
@@ -50,7 +65,7 @@ export default async function ProgramDashboardPage() {
       <section className="min-w-0 space-y-6">
         <div className="space-y-2">
           <p className="text-sm font-medium text-primary">Váš program</p>
-          <h1 className="text-3xl font-semibold tracking-tight">{program.title}</h1>
+          <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">{program.title}</h1>
           <p className="text-muted-foreground">Sledujte svoj celkový postup a pokračujte tam, kde ste skončili.</p>
         </div>
 
@@ -91,7 +106,19 @@ export default async function ProgramDashboardPage() {
           </CardContent>
         </Card>
 
-        <div className="grid gap-4 md:grid-cols-2">
+        <ProgramDaysMobileList
+          days={dayNav.map((day) => {
+            const fullDay = daysWithThumbnails.find((item) => item.id === day.id);
+
+            return {
+              ...day,
+              description: fullDay?.description ?? null,
+              lessonCount: fullDay?.lessons.length ?? 0,
+            };
+          })}
+        />
+
+        <div className="hidden gap-4 md:grid md:grid-cols-2">
           {daysWithThumbnails.map((day) => {
             const dayProgress = calculateDayProgress(day.lessons, completedLessonIds);
 
