@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ next?: string; error?: string }>;
+  searchParams: Promise<{ next?: string; error?: string; message?: string }>;
 }) {
   const params = await searchParams;
 
@@ -19,6 +19,9 @@ export default async function LoginPage({
           {params.error === "google-auth" ? (
             <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
               Prihlásenie cez Google zlyhalo. Skúste to znova alebo použite email a heslo.
+              {params.message ? (
+                <span className="mt-2 block text-xs text-red-600/90">{params.message}</span>
+              ) : null}
             </p>
           ) : null}
           <AuthForm nextPath={params.next ?? "/program"} />

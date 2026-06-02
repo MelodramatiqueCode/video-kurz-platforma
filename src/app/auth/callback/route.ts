@@ -1,18 +1,45 @@
-import { NextResponse } from "next/server";
+import { createServerClient } from "@supabase/ssr";
+import { NextResponse, type NextRequest } from "next/server";
 import { ensureUserRecord } from "@/lib/auth";
-import { createClient } from "@/lib/supabase/server";
 
-export async function GET(request: Request) {
-  const { searchParams, origin } = new URL(request.url);
+export async function GET(request: NextRequest) {
+  const { searchParams, origin } = request.nextUrl;
   const code = searchParams.get("code");
+  const oauthError = searchParams.get("error_description") ?? searchParams.get("error");
   let next = searchParams.get("next") ?? "/program";
 
   if (!next.startsWith("/")) {
     next = "/program";
   }
 
+  if (oauthError) {
+    const loginUrl = new URL("/prihlasenie", origin);
+    loginUrl.searchParams.set("error", "google-auth");
+    loginUrl.searchParams.set("message", oauthError);
+    return NextResponse.redirect(loginUrl);
+  }
+
   if (code) {
-    const supabase = await createClient();
+    const redirectUrl = new URL(next, origin);
+    const response = NextResponse.redirect(redirectUrl);
+
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll() {
+            return request.cookies.getAll();
+          },
+          setAll(cookiesToSet) {
+            cookiesToSet.forEach(({ name, value, options }) => {
+              response.cookies.set(name, value, options);
+            });
+          },
+        },
+      },
+    );
+
     const { error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (!error) {
@@ -24,9 +51,16 @@ export async function GET(request: Request) {
         await ensureUserRecord(user.id, user.email);
       }
 
-      return NextResponse.redirect(`${origin}${next}`);
+      return response;
     }
+
+    const loginUrl = new URL("/prihlasenie", origin);
+    loginUrl.searchParams.set("error", "google-auth");
+    loginUrl.searchParams.set("message", error.message);
+    return NextResponse.redirect(loginUrl);
   }
 
-  return NextResponse.redirect(`${origin}/prihlasenie?error=google-auth`);
+  const loginUrl = new URL("/prihlasenie", origin);
+  loginUrl.searchParams.set("error", "google-auth");
+  return NextResponse.redirect(loginUrl);
 }
