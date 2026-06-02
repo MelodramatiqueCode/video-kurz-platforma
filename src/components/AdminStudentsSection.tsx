@@ -107,8 +107,8 @@ export function AdminStudentsSection({
           <div>
             <h3 className="font-semibold">Udeliť prístup študentovi</h3>
             <p className="mt-1 text-sm text-zinc-600">
-              Používateľ sa musí najprv registrovať alebo prihlásiť na webe. Potom mu tu môžete
-              manuálne aktivovať program.
+              Stačí, ak sa študent aspoň raz registroval alebo prihlásil na webe. Účet sa tu
+              automaticky nájde podľa emailu.
             </p>
           </div>
           <div className="space-y-2">

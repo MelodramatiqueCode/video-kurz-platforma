@@ -26,6 +26,31 @@ export async function ensureUserRecord(userId: string, email: string) {
   });
 }
 
+export async function resolveUserByEmail(email: string) {
+  const normalizedEmail = email.trim().toLowerCase();
+
+  const existing = await prisma.user.findFirst({
+    where: { email: { equals: normalizedEmail, mode: "insensitive" } },
+  });
+  if (existing) {
+    return existing;
+  }
+
+  const rows = await prisma.$queryRaw<{ id: string; email: string }[]>`
+    SELECT id::text AS id, email
+    FROM auth.users
+    WHERE lower(email) = ${normalizedEmail}
+    LIMIT 1
+  `;
+
+  const authUser = rows[0];
+  if (!authUser?.email) {
+    return null;
+  }
+
+  return ensureUserRecord(authUser.id, authUser.email);
+}
+
 export async function requireAdmin() {
   const user = await requireUser("/prihlasenie?next=/admin");
 
